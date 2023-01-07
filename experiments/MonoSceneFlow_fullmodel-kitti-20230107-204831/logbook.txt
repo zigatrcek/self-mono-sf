@@ -1,0 +1,126 @@
+[2023-01-07 20:48:32] ==> Commandline Arguments
+[2023-01-07 20:48:32]   batch_size: 4
+[2023-01-07 20:48:32]   batch_size_val: 1
+[2023-01-07 20:48:32]   checkpoint: None
+[2023-01-07 20:48:32]   cuda: True
+[2023-01-07 20:48:32]   evaluation: False
+[2023-01-07 20:48:32]   finetuning: False
+[2023-01-07 20:48:32]   lr_scheduler: MultiStepLR
+[2023-01-07 20:48:32]   lr_scheduler_gamma: 0.5
+[2023-01-07 20:48:32]   lr_scheduler_last_epoch: -1
+[2023-01-07 20:48:32]   lr_scheduler_milestones: [23, 39, 47, 54]
+[2023-01-07 20:48:32]   model: MonoSceneFlow_fullmodel
+[2023-01-07 20:48:32]   num_workers: 16
+[2023-01-07 20:48:32]   optimizer: Adam
+[2023-01-07 20:48:32]   optimizer_amsgrad: False
+[2023-01-07 20:48:32]   optimizer_betas: (0.9, 0.999)
+[2023-01-07 20:48:32]   optimizer_eps: 1e-08
+[2023-01-07 20:48:32]   optimizer_group: None
+[2023-01-07 20:48:32]   optimizer_lr: 0.0002
+[2023-01-07 20:48:32]   optimizer_weight_decay: 0
+[2023-01-07 20:48:32]   save: experiments/MonoSceneFlow_fullmodel-kitti-20230107-204831
+[2023-01-07 20:48:32]   save_disp: False
+[2023-01-07 20:48:32]   save_disp2: False
+[2023-01-07 20:48:32]   save_flow: False
+[2023-01-07 20:48:32]   seed: 1
+[2023-01-07 20:48:32]   start_epoch: 1
+[2023-01-07 20:48:32]   total_epochs: 62
+[2023-01-07 20:48:32]   training_augmentation: Augmentation_SceneFlow
+[2023-01-07 20:48:32]   training_augmentation_photometric: True
+[2023-01-07 20:48:32]   training_augmentation_resize: [256, 832]
+[2023-01-07 20:48:32]   training_augmentation_scale: [0.93, 1.0]
+[2023-01-07 20:48:32]   training_augmentation_trans: 0.07
+[2023-01-07 20:48:32]   training_dataset: KITTI_Raw_KittiSplit_Train_mnsf
+[2023-01-07 20:48:32]   training_dataset_crop_size: [370, 1224]
+[2023-01-07 20:48:32]   training_dataset_flip_augmentations: True
+[2023-01-07 20:48:32]   training_dataset_num_examples: -1
+[2023-01-07 20:48:32]   training_dataset_preprocessing_crop: True
+[2023-01-07 20:48:32]   training_dataset_root: kitti_data
+[2023-01-07 20:48:32]   training_key: total_loss
+[2023-01-07 20:48:32]   training_loss: Loss_SceneFlow_SelfSup
+[2023-01-07 20:48:32]   validation_augmentation: Augmentation_Resize_Only
+[2023-01-07 20:48:32]   validation_augmentation_imgsize: [256, 832]
+[2023-01-07 20:48:32]   validation_augmentation_photometric: False
+[2023-01-07 20:48:32]   validation_dataset: KITTI_Raw_KittiSplit_Valid_mnsf
+[2023-01-07 20:48:32]   validation_dataset_crop_size: [370, 1224]
+[2023-01-07 20:48:32]   validation_dataset_flip_augmentations: False
+[2023-01-07 20:48:32]   validation_dataset_num_examples: -1
+[2023-01-07 20:48:32]   validation_dataset_preprocessing_crop: False
+[2023-01-07 20:48:32]   validation_dataset_root: kitti_data
+[2023-01-07 20:48:32]   validation_key: total_loss
+[2023-01-07 20:48:32]   validation_key_minimize: True
+[2023-01-07 20:48:32]   validation_loss: Loss_SceneFlow_SelfSup
+[2023-01-07 20:48:32] ==> Random Seeds
+[2023-01-07 20:48:32]   Python seed: 1
+[2023-01-07 20:48:32]   Numpy seed: 2
+[2023-01-07 20:48:32]   Torch CPU seed: 3
+[2023-01-07 20:48:32]   Torch CUDA seed: 4
+[2023-01-07 20:48:32] ==> Datasets
+[2023-01-07 20:48:33]   Training Dataset: KITTI_Raw_KittiSplit_Train_mnsf
+[2023-01-07 20:48:33]     datename: 2011_09_26
+[2023-01-07 20:48:33]     input_k_l1: [3, 3]
+[2023-01-07 20:48:33]     input_k_l2: [3, 3]
+[2023-01-07 20:48:33]     input_k_r1: [3, 3]
+[2023-01-07 20:48:33]     input_k_r2: [3, 3]
+[2023-01-07 20:48:33]     input_l1: [3, 370, 1224]
+[2023-01-07 20:48:33]     input_l2: [3, 370, 1224]
+[2023-01-07 20:48:33]     input_r1: [3, 370, 1224]
+[2023-01-07 20:48:33]     input_r2: [3, 370, 1224]
+[2023-01-07 20:48:33]     input_size: [2]
+[2023-01-07 20:48:33]     num_examples: 25801
+[2023-01-07 20:48:33]   Validation Dataset: KITTI_Raw_KittiSplit_Valid_mnsf
+[2023-01-07 20:48:33]     datename: 2011_09_26
+[2023-01-07 20:48:33]     input_k_l1: [3, 3]
+[2023-01-07 20:48:33]     input_k_l2: [3, 3]
+[2023-01-07 20:48:33]     input_k_r1: [3, 3]
+[2023-01-07 20:48:33]     input_k_r2: [3, 3]
+[2023-01-07 20:48:33]     input_l1: [3, 375, 1242]
+[2023-01-07 20:48:33]     input_l2: [3, 375, 1242]
+[2023-01-07 20:48:33]     input_r1: [3, 375, 1242]
+[2023-01-07 20:48:33]     input_r2: [3, 375, 1242]
+[2023-01-07 20:48:33]     input_size: [2]
+[2023-01-07 20:48:33]     num_examples: 1684
+[2023-01-07 20:48:33] ==> Runtime Augmentations
+[2023-01-07 20:48:33]   training_augmentation: Augmentation_SceneFlow
+[2023-01-07 20:48:33]     photometric: True
+[2023-01-07 20:48:33]     resize: [256, 832]
+[2023-01-07 20:48:33]     scale: [0.93, 1.0]
+[2023-01-07 20:48:33]     trans: 0.07
+[2023-01-07 20:48:35]   validation_augmentation: Augmentation_Resize_Only
+[2023-01-07 20:48:35]     imgsize: [256, 832]
+[2023-01-07 20:48:35]     photometric: False
+[2023-01-07 20:48:35] ==> Model and Loss
+[2023-01-07 20:48:35]   Initializing MSRA
+[2023-01-07 20:48:35]   Batch Size: 4
+[2023-01-07 20:48:35]   GPGPU: Cuda
+[2023-01-07 20:48:35]   Network: MonoSceneFlow_fullmodel
+[2023-01-07 20:48:35]   Number of parameters: 5755000
+[2023-01-07 20:48:35]   Training Key: total_loss
+[2023-01-07 20:48:35]   Training Loss: Loss_SceneFlow_SelfSup
+[2023-01-07 20:48:35]   Validation Key: total_loss
+[2023-01-07 20:48:35]   Validation Loss: Loss_SceneFlow_SelfSup
+[2023-01-07 20:48:35] ==> Checkpoint
+[2023-01-07 20:48:35]   No checkpoint given.
+[2023-01-07 20:48:35]   Starting from scratch with random initialization.
+[2023-01-07 20:48:35] ==> Save Directory
+[2023-01-07 20:48:35]   Save directory: experiments/MonoSceneFlow_fullmodel-kitti-20230107-204831
+[2023-01-07 20:48:35] ==> Optimizer
+[2023-01-07 20:48:35]   Adam
+[2023-01-07 20:48:35]   amsgrad: False
+[2023-01-07 20:48:35]   betas: (0.9, 0.999)
+[2023-01-07 20:48:35]   eps: 1e-08
+[2023-01-07 20:48:35]   lr: 0.0002
+[2023-01-07 20:48:35]   weight_decay: 0
+[2023-01-07 20:48:35] ==> Learning Rate Scheduler
+[2023-01-07 20:48:35]   class: MultiStepLR
+[2023-01-07 20:48:35]   gamma: 0.5
+[2023-01-07 20:48:35]   last_epoch: -1
+[2023-01-07 20:48:35]   milestones: [23, 39, 47, 54]
+[2023-01-07 20:48:35] ==> Runtime
+[2023-01-07 20:48:35]   start_epoch: 1
+[2023-01-07 20:48:35]   total_epochs: 62
+[2023-01-07 20:48:35] 
+[2023-01-07 20:48:35] ==> Epoch 1/62
+[2023-01-07 20:48:35]   lr: 0.0002
+[2023-01-07 20:53:33] ==>    Train:   2%|#2                                                               |  128/6450  04:58<4:05:35  0.43it/s  dp_ema=4.5672, s_2_ema=3.1466, s_3_ema=1.4453, s_3s_ema=0.0016, sf_ema=6.6971, total_loss_ema=13.3943
+[2023-01-07 20:53:33] ==> Progress:   0%|                                                                                                                                                                                      |  0/62  04:58<? ?s/ep  

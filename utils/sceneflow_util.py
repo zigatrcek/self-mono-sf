@@ -6,7 +6,7 @@ import torch.nn.functional as tf
 
 
 def post_processing(l_disp, r_disp):
-    
+
     b, _, h, w = l_disp.shape
     m_disp = 0.5 * (l_disp + r_disp)
     grid_l = torch.linspace(0.0, 1.0, w).view(1, 1, 1, w).expand(1, 1, h, w).float().requires_grad_(False).cuda()

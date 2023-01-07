@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # experiments and datasets meta
-KITTI_RAW_HOME=""
-EXPERIMENTS_HOME=""
+KITTI_RAW_HOME="kitti_data"
+EXPERIMENTS_HOME="experiments"
 
 # model
 MODEL=MonoSceneFlow_fullmodel

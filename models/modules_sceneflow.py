@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import torch
 import torch.nn as nn
 import torch.nn.functional as tf
-import logging 
+import logging
 
 from utils.interpolation import interpolate2d_as
 from utils.sceneflow_util import pixel2pts_ms, pts2pixel_ms
@@ -27,7 +27,7 @@ class WarpingLayer_Flow(nn.Module):
         flo_list.append(flo_w)
         flo_list.append(flo_h)
         flow_for_grid = torch.stack(flo_list).transpose(0, 1)
-        grid = torch.add(get_grid(x), flow_for_grid).transpose(1, 2).transpose(2, 3)        
+        grid = torch.add(get_grid(x), flow_for_grid).transpose(1, 2).transpose(2, 3)
         x_warp = tf.grid_sample(x, grid)
 
         mask = torch.ones(x.size(), requires_grad=False).cuda()
@@ -40,7 +40,7 @@ class WarpingLayer_Flow(nn.Module):
 class WarpingLayer_SF(nn.Module):
     def __init__(self):
         super(WarpingLayer_SF, self).__init__()
- 
+
     def forward(self, x, sceneflow, disp, k1, input_size):
 
         _, _, h_x, w_x = x.size()
@@ -174,7 +174,7 @@ class ContextNetwork(nn.Module):
         )
         self.conv_sf = conv(32, 3, isReLU=False)
         self.conv_d1 = nn.Sequential(
-            conv(32, 1, isReLU=False), 
+            conv(32, 1, isReLU=False),
             torch.nn.Sigmoid()
         )
 

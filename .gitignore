@@ -4,3 +4,5 @@
 *.egg
 *.egg-info/
 *.DS_Store
+kitti_data/
+kitti_scene_flow_2015/
