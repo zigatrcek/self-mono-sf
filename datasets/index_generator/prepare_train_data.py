@@ -70,7 +70,7 @@ def extract_eigen_test_kitti_benchmark_scene():
     if not os.path.exists(kitti_test_file):
         raise ValueError("KITTI Train File '%s' not found!", kitti_test_file)
     kitti_test = open(kitti_test_file, 'r')
-    
+
     filename_list = [line.split(' ') for line in kitti_test.readlines()]
     for item in filename_list:
         if len(item) != 3:
@@ -78,7 +78,7 @@ def extract_eigen_test_kitti_benchmark_scene():
         _, scene_name, _ = item
         scene_name_set.add(scene_name)
 
-    
+
     scene_name_set = sorted(scene_name_set)
 
 
@@ -179,7 +179,7 @@ class SplitTrainVal(object):
         self.eff_ref_val_set = copy.deepcopy(self.ref_val_set)
 
         # 2. create a set ('val. images' + '+seq_len val. images' + '-seq_len val. images')
-        for fr in self.ref_val_set:            
+        for fr in self.ref_val_set:
             drive, frame_id = fr.rstrip().split(' ')
             ref_id = int(frame_id)
 
@@ -189,13 +189,13 @@ class SplitTrainVal(object):
                 fr_alias = drive + ' ' + '%.10d' % ii
                 if fr_alias not in all_frames:
                     continue
-                
+
                 self.eff_ref_val_set.add(drive + ' ' + '%.10d' % ii)
 
         # 3. refine the train set (exclude frames that are included in the eff_ref_val_set)
         self.eff_ref_train_set = set(all_frames) - self.eff_ref_val_set
         self.train_set = copy.deepcopy(self.eff_ref_train_set)
-        for fr in self.eff_ref_train_set:            
+        for fr in self.eff_ref_train_set:
             drive, frame_id = fr.rstrip().split(' ')
             ref_id = int(frame_id)
 
@@ -207,9 +207,9 @@ class SplitTrainVal(object):
                 if fr_alias in self.eff_ref_val_set:
                     self.train_set.remove(fr)
                     break
-                
+
         # 4. training ref. image = Total dataset - the set above
-        
+
         print('all frame ', len(all_frames))
         print('eff ref train set', len(self.eff_ref_train_set))
         print('train set ', len(self.train_set))
@@ -256,7 +256,7 @@ class SplitTrainVal_discard_last_frame(object):
         self.train_set = copy.deepcopy(all_frames)
 
         # 1. Discard last frame
-        for fr in all_frames:            
+        for fr in all_frames:
             drive, frame_id = fr.rstrip().split(' ')
             ref_id = int(frame_id)
 
@@ -266,7 +266,7 @@ class SplitTrainVal_discard_last_frame(object):
 
 
         # 4. training ref. image = Total dataset - the set above
-        
+
         print('all frame ', len(all_frames))
         print('train set ', len(self.train_set))
 
@@ -307,19 +307,19 @@ class SplitTrainVal_even(object):
         self.ref_val_set = set(sorted(all_frames[:n_val_images]))
         self.eff_ref_val_set = copy.deepcopy(self.ref_val_set)
 
-        # 2. create a set 
-        for fr in self.ref_val_set:            
+        # 2. create a set
+        for fr in self.ref_val_set:
             drive, frame_id = fr.rstrip().split(' ')
             ref_id = int(frame_id)
 
             # if id is 1, add 0th frame as well
             if ref_id == 1:
-                self.eff_ref_val_set.add(drive + ' ' + '%.10d' % 0)
-            
+                self.eff_ref_val_set.add(drive + ' ' + '%.8d' % 0)
+
             # Add next frame as well
-            next1_fr_alias = drive + ' ' + '%.10d' % (ref_id + 1)
-            next2_fr_alias = drive + ' ' + '%.10d' % (ref_id + 2)
-            next3_fr_alias = drive + ' ' + '%.10d' % (ref_id + 3)
+            next1_fr_alias = drive + ' ' + '%.8d' % (ref_id + 1)
+            next2_fr_alias = drive + ' ' + '%.8d' % (ref_id + 2)
+            next3_fr_alias = drive + ' ' + '%.8d' % (ref_id + 3)
             if next1_fr_alias in all_frames:
                 if next2_fr_alias not in all_frames:
                     self.eff_ref_val_set.add(next1_fr_alias)    # when curr is 2nd last frame
@@ -332,12 +332,12 @@ class SplitTrainVal_even(object):
 
         # 3. filling hole
         self.eff_ref_val_set_iter = copy.deepcopy(self.eff_ref_val_set)
-        for fr in self.eff_ref_val_set_iter:            
+        for fr in self.eff_ref_val_set_iter:
             drive, frame_id = fr.rstrip().split(' ')
             ref_id = int(frame_id)
 
-            next1_fr_alias = drive + ' ' + '%.10d' % (ref_id + 1)
-            next2_fr_alias = drive + ' ' + '%.10d' % (ref_id + 2)
+            next1_fr_alias = drive + ' ' + '%.8d' % (ref_id + 1)
+            next2_fr_alias = drive + ' ' + '%.8d' % (ref_id + 2)
 
             if (next1_fr_alias in all_frames) and (next2_fr_alias in all_frames):
                 if (next1_fr_alias not in self.eff_ref_val_set) and (next2_fr_alias in self.eff_ref_val_set):
@@ -347,25 +347,27 @@ class SplitTrainVal_even(object):
         # 4. refine the train set (exclude frames that are included in the eff_ref_val_set)
         self.eff_ref_train_set = set(all_frames) - self.eff_ref_val_set
         self.train_set = copy.deepcopy(self.eff_ref_train_set)
-        for fr in self.eff_ref_train_set:            
+        for fr in self.eff_ref_train_set:
             drive, frame_id = fr.rstrip().split(' ')
             ref_id = int(frame_id)
 
             for ii in range(ref_id, ref_id + 1 + 1):
-                fr_alias = drive + ' ' + '%.10d' % ii
+                fr_alias = drive + ' ' + '%.8d' % ii
+                print(f'file: {fr.rstrip()}, frame_id: {frame_id}, ref_id: {ref_id}, fr_alias: {fr_alias}')
                 if fr_alias in self.eff_ref_val_set:
                     self.train_set.remove(fr)
                 if fr_alias not in all_frames:
                     self.train_set.remove(fr)
-                    
-        
+
+
         self.ref_val_set = copy.deepcopy(self.eff_ref_val_set)
-        for fr in self.eff_ref_val_set:            
+        for fr in self.eff_ref_val_set:
             drive, frame_id = fr.rstrip().split(' ')
             ref_id = int(frame_id)
 
             for ii in range(ref_id, ref_id + 1 + 1):
-                fr_alias = drive + ' ' + '%.10d' % ii
+                fr_alias = drive + ' ' + '%.8d' % ii
+                print(f'file: {fr.rstrip()}, frame_id: {frame_id}, ref_id: {ref_id}, fr_alias: {fr_alias}')
                 if fr_alias in self.eff_ref_train_set:
                     self.ref_val_set.remove(fr)
                 if fr_alias not in all_frames:
@@ -373,7 +375,7 @@ class SplitTrainVal_even(object):
 
 
         # 4. training ref. image = Total dataset - the set above
-        
+
         print('all frame ', len(all_frames))
         print('eff ref train set', len(self.eff_ref_train_set))
         print('train set ', len(self.train_set))
@@ -381,11 +383,11 @@ class SplitTrainVal_even(object):
         print('ref val set', len(self.ref_val_set))
 
     def write_dataset_file(self):
-        with open(os.path.join(dir_path, 'generated', self.alias + '_train.txt'), 'w') as tf:
+        with open(os.path.join(dir_path, 'generated', self.alias + '_train.txt'), 'w+') as tf:
             for item in sorted(self.train_set):
                 tf.write('%s\n' % item)
 
-        with open(os.path.join(dir_path, 'generated', self.alias + '_valid.txt'), 'w') as vf:
+        with open(os.path.join(dir_path, 'generated', self.alias + '_valid.txt'), 'w+') as vf:
             for item in sorted(self.ref_val_set):
                 vf.write('%s\n' % item)
 
@@ -393,17 +395,23 @@ class SplitTrainVal_even(object):
 def main():
 
     sequence_length = 1
-    dataset_dir = '/fastdata/jhur/KITTI_raw_noPCL/'
-    
-    ## KITTI SPLIT
-    extract_kitti_benchmark_scene()
-    CollectDataList(dataset_dir=dataset_dir, split='kitti', sequence_length=sequence_length)
-    SplitTrainVal_even(dataset_dir=dataset_dir, file_name='generated/kitti_full.txt', seq_len=sequence_length, alias='kitti')
+    # dataset_dir = '/fastdata/jhur/KITTI_raw_noPCL/'
 
-    # EIGEN SPLIT
-    extract_eigen_test_scene()
-    CollectDataList(dataset_dir=dataset_dir, split='eigen', sequence_length=sequence_length)
-    SplitTrainVal_even(dataset_dir=dataset_dir, file_name='generated/eigen_full.txt', seq_len=sequence_length, alias='eigen')
+    # ## KITTI SPLIT
+    # extract_kitti_benchmark_scene()
+    # CollectDataList(dataset_dir=dataset_dir, split='kitti', sequence_length=sequence_length)
+    # SplitTrainVal_even(dataset_dir=dataset_dir, file_name='generated/kitti_full.txt', seq_len=sequence_length, alias='kitti')
+
+    # # EIGEN SPLIT
+    # extract_eigen_test_scene()
+    # CollectDataList(dataset_dir=dataset_dir, split='eigen', sequence_length=sequence_length)
+    # SplitTrainVal_even(dataset_dir=dataset_dir, file_name='generated/eigen_full.txt', seq_len=sequence_length, alias='eigen')
+
+    dataset_dir = 'modd2/video_data/'
+
+    # MODD2
+    # CollectDataList(dataset_dir=dataset_dir, split='modd2', sequence_length=sequence_length)
+    SplitTrainVal_even(dataset_dir=dataset_dir, file_name='provided/modd2_files.txt', seq_len=sequence_length, alias='modd2')
 
 
 main()

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # experiments and datasets meta
-KITTI_RAW_HOME=""
-EXPERIMENTS_HOME=""
+KITTI_RAW_HOME="kitti_data"
+EXPERIMENTS_HOME="experiments"
 
 # model
 MODEL=MonoSceneFlow_fullmodel
@@ -35,7 +35,7 @@ python ../main.py \
 --optimizer=Adam \
 --optimizer_lr=2e-4 \
 --save=$SAVE_PATH \
---total_epochs=62 \
+--total_epochs=1 \
 --training_augmentation=$Train_Augmentation \
 --training_augmentation_photometric=True \
 --training_dataset=$Train_Dataset \

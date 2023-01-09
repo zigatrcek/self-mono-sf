@@ -7,6 +7,8 @@ from . import kitti_raw_monodepth
 from . import kitti_comb_mnsf
 from . import kitti_eigen_test
 
+from . import modd2_raw_monosf
+
 KITTI_2015_Train_Full_mnsf 				= kitti_2015_train.KITTI_2015_MonoSceneFlow_Full
 KITTI_2015_Train_Full_monodepth 		= kitti_2015_train.KITTI_2015_MonoDepth_Full
 
@@ -28,7 +30,5 @@ KITTI_Comb_Full			= kitti_comb_mnsf.KITTI_Comb_Full
 
 KITTI_Eigen_Test 			= kitti_eigen_test.KITTI_Eigen_Test
 
-
-
-
-
+MODD2_Train_mnsf 			= modd2_raw_monosf.MODD2_Train
+MODD2_Valid_mnsf 			= modd2_raw_monosf.MODD2_Valid

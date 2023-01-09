@@ -6,3 +6,5 @@
 *.DS_Store
 kitti_data/
 kitti_scene_flow_2015/
+experiments/
+modd2/
