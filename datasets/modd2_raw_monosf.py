@@ -32,7 +32,7 @@ class MODD2_Raw(data.Dataset):
 
         # log index file
         logging.debug(f'Index file: {path_index_file}')
-        logging.debug(f'Images root: {images_root}')
+        logging.info(f'Images root: {images_root}')
 
 
         if not os.path.exists(path_index_file):
@@ -53,10 +53,10 @@ class MODD2_Raw(data.Dataset):
             # take two consecutive frames
             idx_src = item[1]
             idx_tgt = '%.8d' % (int(idx_src) + 1)
-            name_l1 = os.path.join(images_root, scene, 'frames', idx_src) + 'L' + ext
-            name_l2 = os.path.join(images_root, scene, 'frames', idx_tgt) + 'L' + ext
-            name_r1 = os.path.join(images_root, scene, 'frames', idx_src) + 'R' + ext
-            name_r2 = os.path.join(images_root, scene, 'frames', idx_tgt) + 'R' + ext
+            name_l1 = os.path.join(images_root, scene, 'framesRectified', idx_src) + 'L' + ext
+            name_l2 = os.path.join(images_root, scene, 'framesRectified', idx_tgt) + 'L' + ext
+            name_r1 = os.path.join(images_root, scene, 'framesRectified', idx_src) + 'R' + ext
+            name_r2 = os.path.join(images_root, scene, 'framesRectified', idx_tgt) + 'R' + ext
 
             if os.path.isfile(name_l1) and os.path.isfile(name_l2) and os.path.isfile(name_r1) and os.path.isfile(name_r2):
                 self._image_list.append([name_l1, name_l2, name_r1, name_r2])

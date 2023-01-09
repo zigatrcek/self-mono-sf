@@ -407,7 +407,7 @@ def main():
     # CollectDataList(dataset_dir=dataset_dir, split='eigen', sequence_length=sequence_length)
     # SplitTrainVal_even(dataset_dir=dataset_dir, file_name='generated/eigen_full.txt', seq_len=sequence_length, alias='eigen')
 
-    dataset_dir = 'modd2/video_data/'
+    dataset_dir = 'modd2/rectified_video_data/'
 
     # MODD2
     # CollectDataList(dataset_dir=dataset_dir, split='modd2', sequence_length=sequence_length)

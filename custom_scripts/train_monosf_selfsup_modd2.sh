@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # experiments and datasets meta
-MODD2_HOME="modd2/video_data"
+MODD2_HOME="modd2/rectified_video_data"
 EXPERIMENTS_HOME="experiments"
 
 # model
@@ -35,7 +35,7 @@ python ../main.py \
 --optimizer=Adam \
 --optimizer_lr=2e-4 \
 --save=$SAVE_PATH \
---total_epochs=30 \
+--total_epochs=10 \
 --training_augmentation=$Train_Augmentation \
 --training_augmentation_photometric=True \
 --training_dataset=$Train_Dataset \
