@@ -91,6 +91,46 @@ def read_png_disp(disp_file):
     mask_disp = (disp_np > 0).astype(np.float64)
     return disp_np, mask_disp
 
+def rectifyimages_fix(S: dict, fs: cv2.FileStorage):
+    """Fixes narrow field of view after rectification.
+    Adapted from https://github.com/bborja/modd/blob/master/rectifyimages_fix.m
+
+    Args:
+        S (dict): Output of `cv2.stereoRectify`
+        fs (cv2.FileStorage): fileStorage containing calibration data
+        sim (list): size of images
+    """
+    R1, R2, P1, P2, Q, roi1, roi2 = S
+    logging.info(f'{roi2}')
+    roi2 = np.array(roi2)
+    croi = roi2
+    aroi = np.zeros((4))
+    logging.info(f'croi.shape: {croi.shape}, aroi.shape: {aroi.shape}')
+
+
+    if croi[2] > croi[3]*4/3:
+        aroi[0] = croi[0] + (croi[2] - croi[3]*4/3)/2
+        aroi[1] = croi[1]
+        aroi[2] = croi[3]*4/3
+        aroi[3] = croi[3]
+    else:
+        aroi[0] = croi[0]
+        aroi[1] = croi[1] + (croi[3] - croi[2]*3/4)/2
+        aroi[2] = croi[2]
+        aroi[3] = croi[2]*3/4
+
+    size = fs.getNode('imageSize')
+    size = [int(size.at(0).real()), int(size.at(1).real())]
+    tmp_u = size[0] / aroi[2]
+    tmp_v = size[1] / aroi[3]
+    tmp_M = np.array([
+                    [tmp_u, 0, -aroi[0]*tmp_u],
+                    [0, tmp_v, -aroi[1]*tmp_v],
+                    [0, 0, 1]
+                ])
+    P1 = tmp_M @ P1
+    P2 = tmp_M @ P2
+    return (R1, R2, P1, P2, Q, roi1, roi2)
 
 def read_raw_calib_file(filepath):
     # From https://github.com/utiasSTARS/pykitti/blob/master/pykitti/utils.py
@@ -117,11 +157,23 @@ def read_yaml_calib_file(filepath: str):
     """
     # Read calibration file
     fs = cv2.FileStorage(filepath, cv2.FILE_STORAGE_READ)
-    # TODO these are calibration matrices, the network takes projection matrices post rectification
-    # this is only a placeholder to get dataset to work
-    cM1 = fs.getNode("M1").mat()  # Extract calibration matrix (M)
-    cM2 = fs.getNode("M2").mat()  # Extract calibration matrix (M)
-    return cM1, cM2
+    size = fs.getNode('imageSize')
+    size = [int(size.at(0).real()), int(size.at(1).real())]
+    S = cv2.stereoRectify(
+        fs.getNode('M1').mat(),
+        fs.getNode('D1').mat(),
+        fs.getNode('M2').mat(),
+        fs.getNode('D2').mat(),
+        size,
+        fs.getNode('R').mat(),
+        fs.getNode('T').mat(),
+        flags=cv2.CALIB_ZERO_DISPARITY,
+        alpha=1
+    )
+    # fix narrow field of view after rectification
+    S = rectifyimages_fix(S, fs)
+    R1, R2, P1, P2, Q, roi1, roi2 = S
+    return P1, P2
 
 
 def read_calib_into_dict(path_dir):
@@ -142,8 +194,18 @@ def read_calib_into_dict(path_dir):
     return intrinsic_dict_l, intrinsic_dict_r
 
 
-def read_modd2_calib_into_dict(path_dir):
+def read_modd2_calib_into_dict(path_dir: str):
+    """Reads all MODD2 projection matrices into a
+        dictionary from calibration files.
 
+    Args:
+        path_dir (str): Path to the directory where this is
+            being called from.
+
+    Returns:
+        tuple: Dictionaries for projection matrices
+            of left and right cameras.
+    """
     modd2_dir = os.path.abspath(os.path.join(path_dir, '..', 'modd2/rectified_video_data'))
     intrinsic_dict_l = {}
     intrinsic_dict_r = {}
@@ -151,7 +213,7 @@ def read_modd2_calib_into_dict(path_dir):
         if p.is_dir():
             for d in p.iterdir():
                 if d.name == 'calibration.yaml':
-                    cM1, cM2 = read_yaml_calib_file(str(d.absolute()))
-                    intrinsic_dict_l[p.name] = cM1
-                    intrinsic_dict_r[p.name] = cM2
+                    P1, P2 = read_yaml_calib_file(str(d.absolute()))
+                    intrinsic_dict_l[p.name] = P1[:3, :3]
+                    intrinsic_dict_r[p.name] = P2[:3, :3]
     return intrinsic_dict_l, intrinsic_dict_r
