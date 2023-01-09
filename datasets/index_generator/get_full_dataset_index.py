@@ -11,7 +11,7 @@ def iter_subtree(path, index_path):
             if p.is_dir():
                 # enter `frames` directory
                 for d in p.iterdir():
-                    if d.name == 'frames':
+                    if d.name == 'framesRectified':
                         # iter the frames directory
                         for i, f in enumerate(sorted(d.iterdir())):
                             if i % 2 == 0:
@@ -24,4 +24,4 @@ def iter_subtree(path, index_path):
                 raise FileNotFoundError()
 
 if __name__ == '__main__':
-    iter_subtree('../../modd2/video_data/', './provided/modd2_files.txt')
+    iter_subtree('../../modd2/rectified_video_data/', './provided/modd2_files.txt')

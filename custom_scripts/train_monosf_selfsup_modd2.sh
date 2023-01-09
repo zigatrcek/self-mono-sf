@@ -35,7 +35,7 @@ python ../main.py \
 --optimizer=Adam \
 --optimizer_lr=2e-4 \
 --save=$SAVE_PATH \
---total_epochs=10 \
+--total_epochs=30 \
 --training_augmentation=$Train_Augmentation \
 --training_augmentation_photometric=True \
 --training_dataset=$Train_Dataset \
@@ -51,4 +51,4 @@ python ../main.py \
 --validation_dataset_preprocessing_crop=False \
 --validation_key=total_loss \
 --validation_loss=$Valid_Loss_Function \
---validation_dataset_num_examples=100
+--validation_dataset_num_examples=30
