@@ -6,7 +6,7 @@ import torch.utils.data as data
 import numpy as np
 
 from torchvision import transforms as vision_transforms
-from .common import read_image_as_byte, read_calib_into_dict
+from .common import read_image_as_byte, read_modd2_calib_into_dict
 from .common import kitti_crop_image_list, kitti_adjust_intrinsic
 import logging
 
@@ -70,8 +70,7 @@ class MODD2_Raw(data.Dataset):
         ## loading calibration matrix
         self.intrinsic_dict_l = {}
         self.intrinsic_dict_r = {}
-        self.intrinsic_dict_l, self.intrinsic_dict_r = read_calib_into_dict(path_dir)
-        logging.debug(f'Intrinsic dict l: {self.intrinsic_dict_l}')
+        self.intrinsic_dict_l, self.intrinsic_dict_r = read_modd2_calib_into_dict(path_dir)
 
         self._to_tensor = vision_transforms.Compose([
             vision_transforms.ToPILImage(),
@@ -87,11 +86,10 @@ class MODD2_Raw(data.Dataset):
 
         # example filename
         im_l1_filename = self._image_list[index][0]
-        basename = os.path.basename(im_l1_filename)[:6]
-        dirname = os.path.dirname(im_l1_filename)[-51:]
-        datename = dirname[:10]
-        k_l1 = torch.from_numpy(self.intrinsic_dict_l[datename]).float()
-        k_r1 = torch.from_numpy(self.intrinsic_dict_r[datename]).float()
+        # name of sequence directory
+        sequence = os.path.basename(os.path.dirname(os.path.dirname(im_l1_filename)))
+        k_l1 = torch.from_numpy(self.intrinsic_dict_l[sequence]).float()
+        k_r1 = torch.from_numpy(self.intrinsic_dict_r[sequence]).float()
 
         # input size
         h_orig, w_orig, _ = img_list_np[0].shape
@@ -121,8 +119,8 @@ class MODD2_Raw(data.Dataset):
 
         common_dict = {
             "index": index,
-            "basename": basename,
-            "datename": datename,
+            "basename": sequence,
+            "datename": sequence,
             "input_size": input_im_size
         }
 

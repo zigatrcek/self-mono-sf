@@ -35,14 +35,14 @@ python ../main.py \
 --optimizer=Adam \
 --optimizer_lr=2e-4 \
 --save=$SAVE_PATH \
---total_epochs=1 \
+--total_epochs=10 \
 --training_augmentation=$Train_Augmentation \
 --training_augmentation_photometric=True \
 --training_dataset=$Train_Dataset \
 --training_dataset_root=$MODD2_HOME \
 --training_dataset_flip_augmentations=True \
 --training_dataset_preprocessing_crop=True \
---training_dataset_num_examples=-1 \
+--training_dataset_num_examples=100 \
 --training_key=total_loss \
 --training_loss=$Train_Loss_Function \
 --validation_augmentation=$Valid_Augmentation \
@@ -51,3 +51,4 @@ python ../main.py \
 --validation_dataset_preprocessing_crop=False \
 --validation_key=total_loss \
 --validation_loss=$Valid_Loss_Function \
+--validation_dataset_num_examples=100

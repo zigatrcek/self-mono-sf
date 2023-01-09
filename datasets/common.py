@@ -1,10 +1,13 @@
 from __future__ import absolute_import, division, print_function
 
+from pathlib import Path
 import os.path
 import torch
 import numpy as np
 import skimage.io as io
 import png
+import cv2
+import logging
 
 width_to_date = dict()
 width_to_date[1242] = '2011_09_26'
@@ -40,7 +43,7 @@ def kitti_adjust_intrinsic(k_l1, k_r1, crop_info):
     k_r1[1, 2] -= str_y
     return k_l1, k_r1
 
-def kitti_crop_image_list(img_list, crop_info):    
+def kitti_crop_image_list(img_list, crop_info):
     str_x = crop_info[0]
     str_y = crop_info[1]
     end_x = crop_info[2]
@@ -88,7 +91,7 @@ def read_png_disp(disp_file):
     mask_disp = (disp_np > 0).astype(np.float64)
     return disp_np, mask_disp
 
-        
+
 def read_raw_calib_file(filepath):
     # From https://github.com/utiasSTARS/pykitti/blob/master/pykitti/utils.py
     """Read in a calibration file and parse into a dictionary."""
@@ -104,6 +107,21 @@ def read_raw_calib_file(filepath):
             except ValueError:
                 pass
     return data
+
+def read_yaml_calib_file(filepath: str):
+    """Read a calibration file in YAML format.
+    Adapted from https://github.com/bborja/mods_evaluation/blob/master/modb_evaluation.py
+
+    Args:
+        filepath (str): Path to the calibration file.
+    """
+    # Read calibration file
+    fs = cv2.FileStorage(filepath, cv2.FILE_STORAGE_READ)
+    # TODO these are calibration matrices, the network takes projection matrices post rectification
+    # this is only a placeholder to get dataset to work
+    cM1 = fs.getNode("M1").mat()  # Extract calibration matrix (M)
+    cM2 = fs.getNode("M2").mat()  # Extract calibration matrix (M)
+    return cM1, cM2
 
 
 def read_calib_into_dict(path_dir):
@@ -121,4 +139,19 @@ def read_calib_into_dict(path_dir):
         intrinsic_dict_l[date] = P_rect_02[:3, :3]
         intrinsic_dict_r[date] = P_rect_03[:3, :3]
 
+    return intrinsic_dict_l, intrinsic_dict_r
+
+
+def read_modd2_calib_into_dict(path_dir):
+
+    modd2_dir = os.path.abspath(os.path.join(path_dir, '..', 'modd2/rectified_video_data'))
+    intrinsic_dict_l = {}
+    intrinsic_dict_r = {}
+    for p in Path(modd2_dir).iterdir():
+        if p.is_dir():
+            for d in p.iterdir():
+                if d.name == 'calibration.yaml':
+                    cM1, cM2 = read_yaml_calib_file(str(d.absolute()))
+                    intrinsic_dict_l[p.name] = cM1
+                    intrinsic_dict_r[p.name] = cM2
     return intrinsic_dict_l, intrinsic_dict_r
