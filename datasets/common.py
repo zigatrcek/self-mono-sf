@@ -91,7 +91,7 @@ def read_png_disp(disp_file):
     mask_disp = (disp_np > 0).astype(np.float64)
     return disp_np, mask_disp
 
-def rectifyimages_fix(S: dict, fs: cv2.FileStorage):
+def rectifyimages_fix(S: dict, fs: cv2.FileStorage) -> 'tuple[np.array, np.array, np.array, np.array, np.array, np.array, np.array]':
     """Fixes narrow field of view after rectification.
     Adapted from https://github.com/bborja/modd/blob/master/rectifyimages_fix.m
 
@@ -105,7 +105,6 @@ def rectifyimages_fix(S: dict, fs: cv2.FileStorage):
     roi2 = np.array(roi2)
     croi = roi2
     aroi = np.zeros((4))
-    logging.info(f'croi.shape: {croi.shape}, aroi.shape: {aroi.shape}')
 
 
     if croi[2] > croi[3]*4/3:
@@ -148,7 +147,7 @@ def read_raw_calib_file(filepath):
                 pass
     return data
 
-def read_yaml_calib_file(filepath: str):
+def read_yaml_calib_file(filepath: str) -> 'tuple[np.array, np.array]':
     """Read a calibration file in YAML format.
     Adapted from https://github.com/bborja/mods_evaluation/blob/master/modb_evaluation.py
 
@@ -194,7 +193,7 @@ def read_calib_into_dict(path_dir):
     return intrinsic_dict_l, intrinsic_dict_r
 
 
-def read_modd2_calib_into_dict(path_dir: str):
+def read_modd2_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
     """Reads all MODD2 projection matrices into a
         dictionary from calibration files.
 
