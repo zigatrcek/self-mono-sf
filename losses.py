@@ -489,7 +489,7 @@ class Eval_SceneFlow_KITTI_Test(nn.Module):
         out_disp_l1_next = _depth2disp_kitti_K(out_depth_l1_next, intrinsics[:, 0, 0])
         output_dict["out_disp_l_pp_next"] = out_disp_l1_next
 
-        loss_dict['sf'] = (out_disp_l1_next * 0).sum()
+        loss_dict['sf'] = (out_disp_l1_next).sum()
 
         return loss_dict
 

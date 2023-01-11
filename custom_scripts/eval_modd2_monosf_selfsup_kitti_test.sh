@@ -2,7 +2,7 @@
 
 # DATASETS_HOME
 KITTI_HOME="kitti_scene_flow_2015"
-CHECKPOINT="checkpoints/full_model_kitti/checkpoint_kitti_split.ckpt"
+CHECKPOINT="checkpoints/test_run_modd2/checkpoint_best.ckpt"
 
 # model
 MODEL=MonoSceneFlow_fullmodel
@@ -12,7 +12,7 @@ Valid_Augmentation=Augmentation_Resize_Only
 Valid_Loss_Function=Eval_SceneFlow_KITTI_Test
 
 # training configuration
-SAVE_PATH="eval/monosf_selfsup_kitti_test"
+SAVE_PATH="eval/monosf_modd2_selfsup_kitti_test"
 python ../main.py \
 --batch_size=1 \
 --batch_size_val=1 \

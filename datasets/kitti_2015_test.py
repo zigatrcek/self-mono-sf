@@ -4,6 +4,7 @@ import os.path
 import torch
 import torch.utils.data as data
 import numpy as np
+import logging
 
 from torchvision import transforms as vision_transforms
 from .common import read_image_as_byte, read_calib_into_dict, get_date_from_width
@@ -16,10 +17,9 @@ class KITTI_2015_Test(data.Dataset):
                  root):
 
         self._args = args
-
         images_l_root = os.path.join(root, "data_scene_flow", "testing", "image_2_jpg")
         images_r_root = os.path.join(root, "data_scene_flow", "testing", "image_3_jpg")
-        
+
         ## loading image -----------------------------------
         if not os.path.isdir(images_l_root):
             raise ValueError("Image directory %s not found!", images_l_root)
@@ -49,7 +49,7 @@ class KITTI_2015_Test(data.Dataset):
             im_l2 = os.path.join(images_l_root, file_idx + "_11" + img_ext)
             im_r1 = os.path.join(images_r_root, file_idx + "_10" + img_ext)
             im_r2 = os.path.join(images_r_root, file_idx + "_11" + img_ext)
-           
+
 
             file_list = [im_l1, im_l2, im_r1, im_r2]
             for _, item in enumerate(file_list):
@@ -63,7 +63,7 @@ class KITTI_2015_Test(data.Dataset):
 
         ## loading calibration matrix
         self.intrinsic_dict_l = {}
-        self.intrinsic_dict_r = {}        
+        self.intrinsic_dict_r = {}
         self.intrinsic_dict_l, self.intrinsic_dict_r = read_calib_into_dict(path_dir)
 
         self._to_tensor = vision_transforms.Compose([
@@ -85,7 +85,7 @@ class KITTI_2015_Test(data.Dataset):
         im_l2_np = read_image_as_byte(im_l2_filename)
         im_r1_np = read_image_as_byte(im_r1_filename)
         im_r2_np = read_image_as_byte(im_r2_filename)
-        
+
         # example filename
         basename = os.path.basename(im_l1_filename)[:6]
 
@@ -120,4 +120,3 @@ class KITTI_2015_Test(data.Dataset):
 
     def __len__(self):
         return self._size
-

@@ -101,7 +101,6 @@ def rectifyimages_fix(S: dict, fs: cv2.FileStorage) -> 'tuple[np.array, np.array
         sim (list): size of images
     """
     R1, R2, P1, P2, Q, roi1, roi2 = S
-    logging.info(f'{roi2}')
     roi2 = np.array(roi2)
     croi = roi2
     aroi = np.zeros((4))

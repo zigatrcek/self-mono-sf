@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # DATASETS_HOME
-KITTI_HOME=""
+KITTI_HOME="kitti_scene_flow_2015"
 CHECKPOINT="checkpoints/full_model_kitti/checkpoint_kitti_split.ckpt"
 
 # model

@@ -63,6 +63,9 @@ class MODD2_Raw(data.Dataset):
 
 
         if num_examples > 0:
+            # TODO shuffling doesn't do anything since the data is only loaded in the first epoch.
+            # logging.info(f'Using {num_examples} examples, shuffling...')
+            # np.random.shuffle(self._image_list)
             self._image_list = self._image_list[:num_examples]
 
         self._size = len(self._image_list)

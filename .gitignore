@@ -8,3 +8,6 @@ kitti_data/
 kitti_scene_flow_2015/
 experiments/
 modd2/
+eval/
+data/
+checkpoints/
