@@ -386,7 +386,7 @@ class EvaluationEpoch:
 
             # Record average losses
             avg_loss_dict = { key: ma.mean() for key, ma in moving_averages_dict.items() }
-            
+
             return avg_loss_dict, output_dict
 
 
@@ -404,7 +404,7 @@ def exec_runtime(args,
     # ----------------------------------------------------------------------------------------------
     # Tensorboard writer
     # ----------------------------------------------------------------------------------------------
-    
+
     if args.evaluation is False:
         tensorBoardWriter = SummaryWriter(args.save + '/writer')
     else:
@@ -413,7 +413,7 @@ def exec_runtime(args,
 
     if train_loader is not None:
         training_module = TrainingEpoch(
-            args, 
+            args,
             desc="   Train",
             loader=train_loader,
             augmentation=training_augmentation,

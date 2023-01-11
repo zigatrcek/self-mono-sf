@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # experiments and datasets meta
-KITTI_RAW_HOME="kitti_data"
+KITTI_RAW_HOME="data/kitti_data"
 EXPERIMENTS_HOME="experiments"
 
 # model

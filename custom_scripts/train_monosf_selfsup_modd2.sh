@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # experiments and datasets meta
-MODD2_HOME="modd2/rectified_video_data"
+MODD2_HOME="data/modd2/rectified_video_data"
 EXPERIMENTS_HOME="experiments"
 
 # model

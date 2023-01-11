@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # DATASETS_HOME
-KITTI_HOME="kitti_scene_flow_2015"
+KITTI_HOME="data/kitti_scene_flow_2015"
 CHECKPOINT="checkpoints/test_run_modd2/checkpoint_best.ckpt"
 
 # model
