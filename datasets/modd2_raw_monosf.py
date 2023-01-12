@@ -31,7 +31,7 @@ class MODD2_Raw(data.Dataset):
         path_index_file = os.path.join(path_dir, index_file)
 
         # log index file
-        logging.debug(f'Index file: {path_index_file}')
+        logging.info(f'Index file: {path_index_file}')
         logging.info(f'Images root: {images_root}')
 
 
@@ -122,7 +122,7 @@ class MODD2_Raw(data.Dataset):
 
         common_dict = {
             "index": index,
-            "basename": sequence,
+            "basename": f'{sequence}-{index}',
             "datename": sequence,
             "input_size": input_im_size
         }
@@ -204,4 +204,3 @@ class MODD2_Valid(MODD2_Raw):
             crop_size=crop_size,
             num_examples=num_examples,
             index_file="index_generator/generated/modd2_valid.txt")
-

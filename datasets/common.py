@@ -204,7 +204,7 @@ def read_modd2_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
         tuple: Dictionaries for projection matrices
             of left and right cameras.
     """
-    modd2_dir = os.path.abspath(os.path.join(path_dir, '..', 'modd2/rectified_video_data'))
+    modd2_dir = os.path.abspath(os.path.join(path_dir, '..', 'data/modd2/rectified_video_data'))
     intrinsic_dict_l = {}
     intrinsic_dict_r = {}
     for p in Path(modd2_dir).iterdir():

@@ -24,4 +24,4 @@ def iter_subtree(path, index_path):
                 raise FileNotFoundError()
 
 if __name__ == '__main__':
-    iter_subtree('../../modd2/rectified_video_data/', './provided/modd2_files.txt')
+    iter_subtree('../../data/modd2/rectified_video_data/', './provided/modd2_files.txt')

@@ -1,18 +1,18 @@
 #!/bin/bash
 
 # DATASETS_HOME
-KITTI_HOME="data/kitti_scene_flow_2015"
-CHECKPOINT="checkpoints/full_model_kitti_ft/checkpoint_kitti_ft.ckpt"
+KITTI_HOME="data/modd2/rectified_video_data"
+CHECKPOINT="checkpoints/test_run_modd2/checkpoint_best.ckpt"
 
 # model
 MODEL=MonoSceneFlow_fullmodel
 
-Valid_Dataset=KITTI_2015_Test
+Valid_Dataset=MODD2_Valid_mnsf
 Valid_Augmentation=Augmentation_Resize_Only
 Valid_Loss_Function=Eval_SceneFlow_KITTI_Test
 
 # training configuration
-SAVE_PATH="eval/monosf_ft_kitti_test"
+SAVE_PATH="eval/monosf_modd2_selfsup_modd2_test"
 python ../main.py \
 --batch_size=1 \
 --batch_size_val=1 \
@@ -27,6 +27,7 @@ python ../main.py \
 --validation_dataset_root=$KITTI_HOME \
 --validation_loss=$Valid_Loss_Function \
 --validation_key=sf \
---save_disp=True \
---save_disp2=True \
---save_flow=True
+--validation_dataset_num_examples=100 \
+# --save_disp=True \
+# --save_disp2=True \
+# --save_flow=True
