@@ -204,3 +204,20 @@ class MODD2_Valid(MODD2_Raw):
             crop_size=crop_size,
             num_examples=num_examples,
             index_file="index_generator/generated/modd2_valid.txt")
+
+class MODD2_Visualisation(MODD2_Raw):
+    def __init__(self,
+                 args,
+                 root,
+                 flip_augmentations=False,
+                 preprocessing_crop=False,
+                 crop_size=[370, 1224],
+                 num_examples=-1):
+        super(MODD2_Visualisation, self).__init__(
+            args,
+            images_root=root,
+            flip_augmentations=flip_augmentations,
+            preprocessing_crop=preprocessing_crop,
+            crop_size=crop_size,
+            num_examples=num_examples,
+            index_file="index_generator/provided/modd2_visualisation.txt")
