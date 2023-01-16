@@ -263,7 +263,8 @@ def _parse_arguments():
         default_class=None,
         exclude_params=["self", "args", "is_cropped"],
         exclude_classes=["_*"],
-        unknown_default_types={"root": str})
+        unknown_default_types={"root": str},
+        forced_default_types={"crop_size": tools.str2intlist})
 
     # -------------------------------------------------------------------------
     # Arguments inferred from datasets for validation

@@ -2,19 +2,19 @@
 
 # DATASETS_HOME
 # MODD2_HOME="data/modd2/rectified_video_data"
-MODD2_HOME="data/kitti_data"
-CHECKPOINT="checkpoints/full_model_kitti_ft/checkpoint_kitti_ft.ckpt"
+MODD2_HOME="data/modd2/rectified_video_data"
+CHECKPOINT="experiments/noteworthy/modd2_fulldata_fullres_20_epochs/checkpoint_latest.ckpt"
 
 # model
 MODEL=MonoSceneFlow_fullmodel
 
 # Valid_Dataset=MODD2_Visualisation_mnsf
-Valid_Dataset=KITTI_Raw_KittiSplit_Valid_mnsf
+Valid_Dataset=MODD2_Visualisation_mnsf
 Valid_Augmentation=Augmentation_Resize_Only
 Valid_Loss_Function=Eval_SceneFlow_KITTI_Test
 
 # training configuration
-SAVE_PATH="eval/visualisation/kitti/full_model_kitti_ft"
+SAVE_PATH="eval/visualisation/fullres_modd2_monosf"
 python ../main.py \
 --batch_size=1 \
 --batch_size_val=1 \

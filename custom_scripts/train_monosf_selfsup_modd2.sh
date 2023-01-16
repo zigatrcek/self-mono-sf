@@ -11,7 +11,7 @@ MODEL=MonoSceneFlow_fullmodel
 ALIAS="-modd2-"
 TIME=$(date +"%Y%m%d-%H%M%S")
 SAVE_PATH="$EXPERIMENTS_HOME/$MODEL$ALIAS$TIME"
-CHECKPOINT=None
+CHECKPOINT="experiments/noteworthy/modd2_fulldata_fullres_1/checkpoint_latest.ckpt"
 
 # Loss and Augmentation
 Train_Dataset=MODD2_Train_mnsf
@@ -42,7 +42,8 @@ python ../main.py \
 --training_dataset_root=$MODD2_HOME \
 --training_dataset_flip_augmentations=True \
 --training_dataset_preprocessing_crop=True \
---training_dataset_num_examples=2000 \
+--training_dataset_num_examples=-1 \
+--training_dataset_crop_size="[950, 1224]" \
 --training_key=total_loss \
 --training_loss=$Train_Loss_Function \
 --validation_augmentation=$Valid_Augmentation \
@@ -51,4 +52,4 @@ python ../main.py \
 --validation_dataset_preprocessing_crop=False \
 --validation_key=total_loss \
 --validation_loss=$Valid_Loss_Function \
---validation_dataset_num_examples=500 \
+--validation_dataset_num_examples=-1 \

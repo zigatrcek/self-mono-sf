@@ -13,32 +13,34 @@ from utils_misc import flow_to_png_middlebury, read_png_flow, read_png_disp
 from utils_misc import numpy2torch, pixel2pts_ms
 
 width_to_focal = dict()
-width_to_focal[1242] = 721.5377
-width_to_focal[1241] = 718.856
-width_to_focal[1224] = 707.0493
-width_to_focal[1238] = 718.3351
-width_to_focal[1226] = 707.0912
+width_to_focal[1278] = 956.99355407878932
+# width_to_focal[1242] = 721.5377
+# width_to_focal[1241] = 718.856
+# width_to_focal[1238] = 718.3351
+# width_to_focal[1226] = 707.0912
+# width_to_focal[1224] = 707.0493
 
 cam_center_dict = dict()
-cam_center_dict[1242] = [6.095593e+02, 1.728540e+02]
-cam_center_dict[1241] = [6.071928e+02, 1.852157e+02]
-cam_center_dict[1224] = [6.040814e+02, 1.805066e+02]
-cam_center_dict[1238] = [6.003891e+02, 1.815122e+02]
-cam_center_dict[1226] = [6.018873e+02, 1.831104e+02]
+cam_center_dict[1278] = [639, 749]
+# cam_center_dict[1242] = [6.095593e+02, 1.728540e+02]
+# cam_center_dict[1241] = [6.071928e+02, 1.852157e+02]
+# cam_center_dict[1238] = [6.003891e+02, 1.815122e+02]
+# cam_center_dict[1226] = [6.018873e+02, 1.831104e+02]
+# cam_center_dict[1224] = [6.040814e+02, 1.805066e+02]
 
 
 ########
 sampling = [4,20,25,35,40]
-imgflag = 1 # 0 is image, 1 is flow
+imgflag = 0 # 0 is image, 1 is flow
 ########
 
 
 
 def get_pcd(img_idx, image_dir, result_dir, tt):
 
-    idx_curr = '%06d' % (img_idx)
+    idx_curr = '%08d' % (img_idx)
 
-    im1_np0 = (io.imread(os.path.join(image_dir, "image_2/" + idx_curr + "_10.png")) / np.float32(255.0))[110:, :, :]
+    im1_np0 = (io.imread(os.path.join(image_dir, "image_2/" + idx_curr + "L.jpg")) / np.float32(255.0))[110:, :, :]
 
     flo_f_np0 = read_png_flow(os.path.join(result_dir, "flow/" + idx_curr + "_10.png"))[110:, :, :]
     disp1_np0 = read_png_disp(os.path.join(result_dir, "disp_0/" + idx_curr + "_10.png"))[110:, :, :]
@@ -68,12 +70,12 @@ def get_pcd(img_idx, image_dir, result_dir, tt):
     im1_np0_g = np.repeat(np.expand_dims(rgb2gray(im1_np0), axis=2), 3, axis=2)
     flow = torch.cat((sf[:, 0:1, :, :], sf[:, 2:3, :, :]), dim=1).data.cpu().numpy()[0, :, :, :]
     flow_img = flow_to_png_middlebury(flow) / np.float32(255.0)
-    
+
     if imgflag == 0:
         flow_img = im1_np0
     else:
         flow_img = (flow_img * 0.75 + im1_np0_g * 0.25)
-    
+
     ## Crop
     max_crop = (60, 0.7, 82)
     min_crop = (-60, -20, 0)
@@ -144,13 +146,13 @@ def custom_vis(imglist, kitti_data_dir, result_dir, vis_dir):
         ## Rendering
         max_d_x = 13
         max_d_y = 4
-        
+
         if glb.index < sampling[0]:
             tt = 0
             rx = 0
             ry = 0
         elif glb.index < sampling[1]: # only rotation
-            tt = 0 
+            tt = 0
             rad = 2 * 3.14159265359 / (sampling[1] - sampling[0]) * (glb.index - sampling[0])
             rx = max_d_x * math.sin(rad)
             ry = (max_d_y * math.cos(rad) - max_d_y)
@@ -159,7 +161,7 @@ def custom_vis(imglist, kitti_data_dir, result_dir, vis_dir):
             rx = 0
             ry = 0
         elif glb.index < sampling[3]:
-            tt = (glb.index - sampling[2]) / (sampling[3] - sampling[2]) 
+            tt = (glb.index - sampling[2]) / (sampling[3] - sampling[2])
             rx = 0
             ry = 0
         else:
@@ -200,13 +202,17 @@ def custom_vis(imglist, kitti_data_dir, result_dir, vis_dir):
 
 ########################################################################
 
-kitti_data_dir = "demo/demo_generator/kitti_img"    ## raw KITTI image
-result_dir = "demo/demo_generator/results"          ## disp_0, disp_1, flow
-vis_dir = "demo/demo_generator/vis"                 ## visualization output folder
+# kitti_data_dir = "demo/demo_generator/kitti_img"    ## raw KITTI image
+# result_dir = "demo/demo_generator/results"          ## disp_0, disp_1, flow
+# vis_dir = "demo/demo_generator/vis"                 ## visualization output folder
+
+kitti_data_dir = "results/modd2/modd2_img"    ## raw KITTI image
+result_dir = "results/modd2"          ## disp_0, disp_1, flow
+vis_dir = "results/modd2/vis"                 ## visualization output folder
 
 imglist = []
 
 for ii in range(0, sampling[-1]):
-    imglist.append(139)
+    imglist.append(561)
 
 custom_vis(imglist, kitti_data_dir, result_dir, vis_dir)

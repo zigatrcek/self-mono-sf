@@ -17,7 +17,7 @@ class MODD2_Raw(data.Dataset):
                  images_root=None,
                  flip_augmentations=True,
                  preprocessing_crop=True,
-                 crop_size=[370, 1224],
+                 crop_size=[950, 1224],
                  num_examples=-1,
                  index_file=None):
 
@@ -176,7 +176,7 @@ class MODD2_Train(MODD2_Raw):
                  root,
                  flip_augmentations=True,
                  preprocessing_crop=True,
-                 crop_size=[370, 1224],
+                 crop_size=[950, 1224],
                  num_examples=-1):
         super(MODD2_Train, self).__init__(
             args,
@@ -194,7 +194,7 @@ class MODD2_Valid(MODD2_Raw):
                  root,
                  flip_augmentations=False,
                  preprocessing_crop=False,
-                 crop_size=[370, 1224],
+                 crop_size=[950, 1224],
                  num_examples=-1):
         super(MODD2_Valid, self).__init__(
             args,
@@ -211,7 +211,7 @@ class MODD2_Visualisation(MODD2_Raw):
                  root,
                  flip_augmentations=False,
                  preprocessing_crop=False,
-                 crop_size=[370, 1224],
+                 crop_size=[950, 1224],
                  num_examples=-1):
         super(MODD2_Visualisation, self).__init__(
             args,
