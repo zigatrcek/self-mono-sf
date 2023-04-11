@@ -8,6 +8,7 @@ import skimage.io as io
 import png
 import cv2
 import logging
+import matplotlib.pyplot as plt
 
 width_to_date = dict()
 width_to_date[1242] = '2011_09_26'
@@ -70,6 +71,10 @@ def read_image_as_byte(filename):
 def read_png_flow(flow_file):
     flow_object = png.Reader(filename=flow_file)
     flow_direct = flow_object.asDirect()
+    # logging.info(f'Flow direct: {flow_direct}')
+    # Flow direct:
+    # (1242, 375, <map object at 0x7f7df5520a10>,
+    # {'greyscale': False, 'alpha': False, 'planes': 3, 'bitdepth': 16, 'interlace': 0, 'size': (1242, 375)})
     flow_data = list(flow_direct[2])
     (w, h) = flow_direct[3]['size']
     flow = np.zeros((h, w, 3), dtype=np.float64)
@@ -82,6 +87,13 @@ def read_png_flow(flow_file):
     flow[:, :, 0:2] = (flow[:, :, 0:2] - 2 ** 15) / 64.0
     flow[invalid_idx, 0] = 0
     flow[invalid_idx, 1] = 0
+    # plt.subplot(3, 1, 1)
+    # plt.imshow(flow[:, :, 0])
+    # plt.subplot(3, 1, 2)
+    # plt.imshow(flow[:, :, 1])
+    # plt.subplot(3, 1, 3)
+    # plt.imshow(flow[:, :, 2])
+    # plt.show()
     return flow[:, :, 0:2], (1 - invalid_idx * 1)[:, :, None]
 
 
@@ -218,3 +230,15 @@ def read_modd2_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
                     intrinsic_dict_l[p.name] = P1[:3, :3]
                     intrinsic_dict_r[p.name] = P2[:3, :3]
     return intrinsic_dict_l, intrinsic_dict_r
+
+def read_modd2_calib_from_file(file_path: str) -> 'tuple[np.array, np.array]':
+    """Reads MODD2 projection matrices from a calibration file.
+
+    Args:
+        file_path (str): Path to the calibration file.
+
+    Returns:
+        tuple: Projection matrices for left and right cameras.
+    """
+    P1, P2 = read_yaml_calib_file(file_path)
+    return P1[:3, :3], P2[:3, :3]

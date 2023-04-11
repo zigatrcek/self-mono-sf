@@ -215,4 +215,5 @@ imglist = []
 for ii in range(0, sampling[-1]):
     imglist.append(561)
 
+
 custom_vis(imglist, kitti_data_dir, result_dir, vis_dir)

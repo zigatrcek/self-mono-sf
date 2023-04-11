@@ -5,6 +5,8 @@ import torch
 import torch.utils.data as data
 import numpy as np
 
+import logging
+
 from torchvision import transforms as vision_transforms
 from .common import read_image_as_byte, read_calib_into_dict, read_png_flow, read_png_disp, numpy2torch
 from .common import kitti_crop_image_list, kitti_adjust_intrinsic, intrinsic_scale, get_date_from_width
@@ -99,7 +101,7 @@ class KITTI_2015_Train_Base(data.Dataset):
 
         ## loading calibration matrix
         self.intrinsic_dict_l = {}
-        self.intrinsic_dict_r = {}        
+        self.intrinsic_dict_r = {}
         self.intrinsic_dict_l, self.intrinsic_dict_r = read_calib_into_dict(path_dir)
 
 
@@ -116,7 +118,7 @@ class KITTI_2015_MonoSceneFlow(KITTI_2015_Train_Base):
             data_root=data_root,
             dstype=dstype)
 
-        self._args = args        
+        self._args = args
         self._preprocessing_crop = preprocessing_crop
         self._crop_size = crop_size
 
@@ -131,7 +133,7 @@ class KITTI_2015_MonoSceneFlow(KITTI_2015_Train_Base):
         # read images and flow
         # im_l1, im_l2, im_r1, im_r2
         img_list_np = [read_image_as_byte(img) for img in self._image_list[index]]
-        
+
         # flo_occ, mask_flo_occ, flo_noc, mask_flo_noc
         flo_list_np = [read_png_flow(img) for img in self._flow_list[index]]
         flo_list_np = list_flatten(flo_list_np)
@@ -140,17 +142,17 @@ class KITTI_2015_MonoSceneFlow(KITTI_2015_Train_Base):
         # disp0_noc, mask0_disp_noc, disp1_noc, mask1_disp_noc
         disp_list_np = [read_png_disp(img) for img in self._disp_list[index]]
         disp_list_np = list_flatten(disp_list_np)
-        
+
         # example filename
         basename = os.path.basename(self._image_list[index][0])[:6]
         k_l1 = torch.from_numpy(self.intrinsic_dict_l[get_date_from_width(img_list_np[0].shape[1])]).float()
         k_r1 = torch.from_numpy(self.intrinsic_dict_r[get_date_from_width(img_list_np[2].shape[1])]).float()
-        
+
         # input size
         h_orig, w_orig, _ = img_list_np[0].shape
         input_im_size = torch.from_numpy(np.array([h_orig, w_orig])).float()
 
-        # cropping 
+        # cropping
         if self._preprocessing_crop:
 
             # get starting positions
@@ -165,7 +167,7 @@ class KITTI_2015_MonoSceneFlow(KITTI_2015_Train_Base):
             flo_list_np = kitti_crop_image_list(flo_list_np, crop_info)
             disp_list_np = kitti_crop_image_list(disp_list_np, crop_info)
             k_l1, k_r1 = kitti_adjust_intrinsic(k_l1, k_r1, crop_info)
-            
+
 
         # convert np to tensor
         img_list_tensor = [self._to_tensor(img) for img in img_list_np]
@@ -213,7 +215,7 @@ class KITTI_2015_MonoSceneFlow_Full(KITTI_2015_MonoSceneFlow):
                  crop_size=[370, 1224]):
         super(KITTI_2015_MonoSceneFlow_Full, self).__init__(
             args,
-            data_root=root,            
+            data_root=root,
             preprocessing_crop=preprocessing_crop,
             crop_size=crop_size,
             dstype="full")
@@ -261,12 +263,12 @@ class KITTI_2015_MonoDepth(KITTI_2015_Train_Base):
         disp_t = numpy2torch(disp_np)
         mask_disp_t = numpy2torch(mask_disp)
 
-        # resizing intrinsic matrix    
+        # resizing intrinsic matrix
         im_l1 = img_list_tensor[0]
         k_l1 = intrinsic_scale(k_l1, im_l1.size(1) / h_orig, im_l1.size(2) / w_orig)
         k_l1_flip = k_l1.clone()
         k_l1_flip[0, 2] = im_l1.size(2) - k_l1_flip[0, 2]
-        
+
 
         example_dict = {
             "input_l1": img_list_tensor[0],
@@ -298,4 +300,3 @@ class KITTI_2015_MonoDepth_Full(KITTI_2015_MonoDepth):
             args,
             data_root=root,
             dstype="full")
-

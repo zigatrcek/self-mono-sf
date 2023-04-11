@@ -10,6 +10,9 @@ from utils.sceneflow_util import pixel2pts_ms, pts2pixel_ms, reconstructImg, rec
 from utils.monodepth_eval import compute_errors, compute_d1_all
 from models.modules_sceneflow import WarpingLayer_Flow
 
+import logging
+import traceback
+
 
 ###############################################
 ## Basic Module
@@ -326,7 +329,6 @@ class Loss_SceneFlow_SemiSupFinetune(nn.Module):
 
 
     def forward(self, output_dict, target_dict):
-
         loss_dict = {}
 
         unsup_loss_dict = self._unsup_loss(output_dict, target_dict)
@@ -469,6 +471,8 @@ class Eval_SceneFlow_KITTI_Test(nn.Module):
         ##################################################
         input_l1 = target_dict['input_l1']
         intrinsics = target_dict['input_k_l1']
+        # logging.info(target_dict['input_k_l1'])
+
 
         out_disp_l1 = interpolate2d_as(output_dict["disp_l1_pp"][0], input_l1, mode="bilinear") * input_l1.size(3)
         out_depth_l1 = _disp2depth_kitti_K(out_disp_l1, intrinsics[:, 0, 0])
@@ -500,6 +504,10 @@ class Eval_SceneFlow_KITTI_Train(nn.Module):
 
 
     def forward(self, output_dict, target_dict):
+        logging.info("Evaluating SceneFlow KITTI Train")
+        logging.info("output_dict: {}".format(output_dict.keys()))
+        logging.info("target_dict: {}".format(target_dict.keys()))
+
 
         loss_dict = {}
 
@@ -512,6 +520,10 @@ class Eval_SceneFlow_KITTI_Train(nn.Module):
         gt_disp2_occ = target_dict['target_disp2_occ']
         gt_disp2_mask = (target_dict['target_disp2_mask_occ']==1).float()
 
+        logging.info(f'gt_flow_mask: {gt_flow_mask.shape}')
+        logging.info(f'gt_disp_mask: {gt_disp_mask.shape}')
+        logging.info(f'gt_disp2_mask: {gt_disp2_mask.shape}')
+
         gt_sf_mask = gt_flow_mask * gt_disp_mask * gt_disp2_mask
 
         intrinsics = target_dict['input_k_l1']
@@ -522,7 +534,10 @@ class Eval_SceneFlow_KITTI_Train(nn.Module):
 
         batch_size, _, _, width = gt_disp.size()
 
+        logging.info(f'disp_l1_pp shape: {output_dict["disp_l1_pp"][0].shape}')
+
         out_disp_l1 = interpolate2d_as(output_dict["disp_l1_pp"][0], gt_disp, mode="bilinear") * width
+        logging.info(f'out_disp_l1 shape: {out_disp_l1.shape}')
         out_depth_l1 = _disp2depth_kitti_K(out_disp_l1, intrinsics[:, 0, 0])
         out_depth_l1 = torch.clamp(out_depth_l1, 1e-3, 80)
         gt_depth_l1 = _disp2depth_kitti_K(gt_disp, intrinsics[:, 0, 0])
