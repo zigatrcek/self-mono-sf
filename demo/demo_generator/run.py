@@ -118,7 +118,7 @@ def get_pcd(img_idx, image_dir, result_dir, tt):
 def custom_vis(imglist, kitti_data_dir, result_dir, vis_dir):
 
     custom_vis.index = 0
-    custom_vis.trajectory = o3d.io.read_pinhole_camera_trajectory("cam_pose.json")
+    custom_vis.trajectory = o3d.io.read_pinhole_camera_trajectory("results/modd2/cam_pose.json")
     custom_vis.vis = o3d.visualization.Visualizer()
 
     img_id = imglist[custom_vis.index]
@@ -130,8 +130,8 @@ def custom_vis(imglist, kitti_data_dir, result_dir, vis_dir):
         glb = custom_vis
 
         ## Capture
-        depth = vis.capture_depth_float_buffer(False)
-        image = vis.capture_screen_float_buffer(False)
+        depth = vis.capture_depth_float_buffer(True)
+        image = vis.capture_screen_float_buffer(True)
         save_id = imglist[glb.index-1]
         file_name = ""
 
@@ -141,7 +141,9 @@ def custom_vis(imglist, kitti_data_dir, result_dir, vis_dir):
             file_name = os.path.join(vis_dir, "{:06d}_{:02d}.png".format(save_id, glb.index))
 
         print(' ' + str(glb.index) + ' '+ str(save_id) + ' '+ file_name)
-        io.imsave(file_name, np.asarray(image), check_contrast=False)
+        image = np.asarray(image)
+        print(image.mean(), image.min(), image.max())
+        io.imsave(file_name, image, check_contrast=False)
 
         ## Rendering
         max_d_x = 13
