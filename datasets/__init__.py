@@ -33,3 +33,4 @@ KITTI_Eigen_Test 			= kitti_eigen_test.KITTI_Eigen_Test
 MODD2_Train_mnsf 			= modd2_raw_monosf.MODD2_Train
 MODD2_Valid_mnsf 			= modd2_raw_monosf.MODD2_Valid
 MODD2_Visualisation_mnsf    = modd2_raw_monosf.MODD2_Visualisation
+MODD2_Inference_mnsf    = modd2_raw_monosf.MODD2_Inference

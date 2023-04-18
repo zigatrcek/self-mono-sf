@@ -11,7 +11,7 @@ UNKNOWN_FLOW_THRESH = 1e7
 
 def write_depth_png(filename, disp_map):
 
-    io.imsave(filename, (disp_map * 256.0).astype(np.uint16)) 
+    io.imsave(filename, (disp_map * 256.0).astype(np.uint16), check_contrast=False)
 
 
 def write_flow_png(filename, uv, v=None, mask=None):
@@ -34,7 +34,7 @@ def write_flow_png(filename, uv, v=None, mask=None):
 
     flow_u = np.clip((u * 64 + 2 ** 15), 0.0, 65535.0).astype(np.uint16)
     flow_v = np.clip((v * 64 + 2 ** 15), 0.0, 65535.0).astype(np.uint16)
-    
+
     output = np.stack((flow_u, flow_v, valid_mask), axis=-1)
 
     with open(filename, 'wb') as f:
@@ -186,7 +186,7 @@ def np_flow2rgb(flow_map, max_value=None):
         normalized_flow_map = flow_map / max_value
     else:
         normalized_flow_map = flow_map / (np.abs(flow_map).max())
-    
+
     rgb_map[:, :, 0] += normalized_flow_map[0]
     rgb_map[:, :, 1] -= 0.5 * (normalized_flow_map[0] + normalized_flow_map[1])
     rgb_map[:, :, 2] += normalized_flow_map[1]

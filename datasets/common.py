@@ -216,7 +216,7 @@ def read_modd2_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
         tuple: Dictionaries for projection matrices
             of left and right cameras.
     """
-    modd2_dir = os.path.abspath(os.path.join(path_dir, '..', 'data/modd2/rectified_video_data'))
+    modd2_dir = os.path.abspath(os.path.join(path_dir, '../..', 'data/modd2/rectified_video_data'))
     intrinsic_dict_l = {}
     intrinsic_dict_r = {}
     for p in Path(modd2_dir).iterdir():
@@ -224,8 +224,8 @@ def read_modd2_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
             for d in p.iterdir():
                 if d.name == 'calibration.yaml':
                     P1, P2 = read_yaml_calib_file(str(d.absolute()))
-                    logging.info(p.name)
-                    logging.info(f'{P1}')
+                    logging.debug(p.name)
+                    logging.debug(f'{P1}')
 
                     intrinsic_dict_l[p.name] = P1[:3, :3]
                     intrinsic_dict_r[p.name] = P2[:3, :3]

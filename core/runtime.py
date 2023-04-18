@@ -112,6 +112,24 @@ def format_learning_rate(lr):
         return "{}".format(str(lr[0]) if len(lr) == 1 else lr)
 
 
+def _disp2depth(disp, k_value):
+    """Convert disparity to depth
+
+    Args:
+        disp (torch.Tensor): Disparity
+        k_value (torch.Tensor): K value of the camera
+
+    Returns:
+        torch.Tensor: depth
+    """
+
+
+    mask = (disp > 0).float()
+    return 1 / (disp + (1.0 - mask))
+    depth = k_value.unsqueeze(1).unsqueeze(1).unsqueeze(1) * 0.54 / (disp + (1.0 - mask))
+
+    return depth
+
 class TrainingEpoch:
     def __init__(self,
                  args,
@@ -231,7 +249,7 @@ class EvaluationEpoch:
         self._augmentation = augmentation
         self._tbwriter = tbwriter
         self._save_output = False
-        if self._args.save_flow or self._args.save_disp or self._args.save_disp2:
+        if self._args.save_flow or self._args.save_disp or self._args.save_disp2 or self.args.save_depth:
             self._save_output = True
 
     def save_outputs(self, example_dict, output_dict):
@@ -240,13 +258,14 @@ class EvaluationEpoch:
         save_root_flow = self._args.save + '/flow/'
         save_root_disp = self._args.save + '/disp_0/'
         save_root_disp2 = self._args.save + '/disp_1/'
+        save_root_depth = self._args.save + '/depth/'
 
         if self._args.save_flow:
             out_flow = output_dict["out_flow_pp"].data.cpu().numpy()
             b_size = output_dict["out_flow_pp"].data.size(0)
             file_names_flow = []
             for ii in range(0, b_size):
-                file_name_flow = save_root_flow + '/' + str(example_dict["basename"][ii])
+                file_name_flow = save_root_flow + '/' + str(example_dict["img_name"][ii])
                 file_names_flow.append(file_name_flow)
                 directory_flow = os.path.dirname(file_name_flow)
                 if not os.path.exists(directory_flow):
@@ -269,7 +288,7 @@ class EvaluationEpoch:
             file_names_disp = []
 
             for ii in range(0, b_size):
-                file_name_disp = save_root_disp + '/' + str(example_dict["basename"][ii])
+                file_name_disp = save_root_disp + '/' + str(example_dict["img_name"][ii])
                 file_names_disp.append(file_name_disp)
                 directory_disp = os.path.dirname(file_name_disp)
                 if not os.path.exists(directory_disp):
@@ -293,7 +312,7 @@ class EvaluationEpoch:
             file_names_disp2 = []
 
             for ii in range(0, b_size):
-                file_name_disp2 = save_root_disp2 + '/' + str(example_dict["basename"][ii])
+                file_name_disp2 = save_root_disp2 + '/' + str(example_dict["img_name"][ii])
                 file_names_disp2.append(file_name_disp2)
                 directory_disp2 = os.path.dirname(file_name_disp2)
                 if not os.path.exists(directory_disp2):
@@ -305,10 +324,32 @@ class EvaluationEpoch:
                 disp2_ii = out_disp2[ii, 0, ...]
                 norm_disp2 = (disp2_ii / disp2_ii.max() * 255).astype(np.uint8)
                 plt.imsave(file_names_disp2[ii] + '_disp2.jpg', norm_disp2, cmap='plasma')
+                logging.info('Saving: %s', file_names_disp2[ii] + '_disp2.jpg')
                 # Png
                 file_name2 = file_names_disp2[ii] + '_10.png'
                 write_depth_png(file_name2, out_disp2[ii, 0, ...])
+        if self._args.save_depth:
+            b_size = output_dict["out_disp_l_pp"].data.size(0)
+            out_depth = _disp2depth(output_dict["out_disp_l_pp"].data, 0).cpu().numpy()
+            file_names_depth = []
+            for ii in range(0, b_size):
+                file_name_depth = save_root_depth + '/' + str(example_dict["img_name"][ii])
+                file_names_depth.append(file_name_depth)
+                directory_depth = os.path.dirname(file_name_depth)
+                if not os.path.exists(directory_depth):
+                    os.makedirs(directory_depth)
+                    print(directory_depth, ' has been created.')
 
+            for ii in range(0, b_size):
+                # Vis
+                depth_ii = out_depth[ii, 0, ...]
+                norm_depth = (depth_ii / depth_ii.max() * 255).astype(np.uint8)
+                plt.imsave(file_names_depth[ii] + '_depth.jpg', norm_depth, cmap='plasma')
+                logging.info('Saving: %s', file_names_depth[ii] + '_depth.jpg')
+                # Png
+                file_name = file_names_depth[ii] + '_10.png'
+                logging.info(f'Mean: {out_depth[ii, 0, ...].mean()}')
+                write_depth_png(file_name, out_depth[ii, 0, ...])
 
     def _step(self, example_dict, model_and_loss):
 

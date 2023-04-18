@@ -198,6 +198,7 @@ def _parse_arguments():
     add("--save_flow", type=tools.str2bool, default=False)
     add("--save_disp", type=tools.str2bool, default=False)
     add("--save_disp2", type=tools.str2bool, default=False)
+    add("--save_depth", type=tools.str2bool, default=False)
     add("--finetuning", type=tools.str2bool, default=False)
 
     # -------------------------------------------------------------------------
