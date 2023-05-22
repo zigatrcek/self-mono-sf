@@ -249,7 +249,7 @@ class EvaluationEpoch:
         self._augmentation = augmentation
         self._tbwriter = tbwriter
         self._save_output = False
-        if self._args.save_flow or self._args.save_disp or self._args.save_disp2 or self.args.save_depth:
+        if self._args.save_flow or self._args.save_disp or self._args.save_disp2 or self._args.save_depth:
             self._save_output = True
 
     def save_outputs(self, example_dict, output_dict):
@@ -265,7 +265,8 @@ class EvaluationEpoch:
             b_size = output_dict["out_flow_pp"].data.size(0)
             file_names_flow = []
             for ii in range(0, b_size):
-                file_name_flow = save_root_flow + '/' + str(example_dict["img_name"][ii])
+                file_name_flow = os.path.join(save_root_flow, str(example_dict['sequence'][ii]), str(example_dict['img_name'][ii]))
+                # file_name_flow = save_root_flow + '/' + str(example_dict["img_name"][ii])
                 file_names_flow.append(file_name_flow)
                 directory_flow = os.path.dirname(file_name_flow)
                 if not os.path.exists(directory_flow):
@@ -288,7 +289,8 @@ class EvaluationEpoch:
             file_names_disp = []
 
             for ii in range(0, b_size):
-                file_name_disp = save_root_disp + '/' + str(example_dict["img_name"][ii])
+                file_name_disp = os.path.join(save_root_disp, str(example_dict['sequence'][ii]), str(example_dict['img_name'][ii]))
+                # file_name_disp = save_root_disp + '/' + str(example_dict["img_name"][ii])
                 file_names_disp.append(file_name_disp)
                 directory_disp = os.path.dirname(file_name_disp)
                 if not os.path.exists(directory_disp):
@@ -312,7 +314,8 @@ class EvaluationEpoch:
             file_names_disp2 = []
 
             for ii in range(0, b_size):
-                file_name_disp2 = save_root_disp2 + '/' + str(example_dict["img_name"][ii])
+                file_name_disp2 = os.path.join(save_root_disp2, str(example_dict['sequence'][ii]), str(example_dict['img_name'][ii]))
+                # file_name_disp2 = save_root_disp2 + '/' + str(example_dict["img_name"][ii])
                 file_names_disp2.append(file_name_disp2)
                 directory_disp2 = os.path.dirname(file_name_disp2)
                 if not os.path.exists(directory_disp2):
@@ -333,7 +336,8 @@ class EvaluationEpoch:
             out_depth = _disp2depth(output_dict["out_disp_l_pp"].data, 0).cpu().numpy()
             file_names_depth = []
             for ii in range(0, b_size):
-                file_name_depth = save_root_depth + '/' + str(example_dict["img_name"][ii])
+                file_name_depth = os.path.join(save_root_depth, str(example_dict['sequence'][ii]), str(example_dict['img_name'][ii]))
+                # file_name_depth = save_root_depth + '/' + str(example_dict["img_name"][ii])
                 file_names_depth.append(file_name_depth)
                 directory_depth = os.path.dirname(file_name_depth)
                 if not os.path.exists(directory_depth):

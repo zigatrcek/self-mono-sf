@@ -414,4 +414,4 @@ class MODD2_Inference(Inference_Raw):
             preprocessing_crop=preprocessing_crop,
             crop_size=crop_size,
             num_examples=num_examples,
-            index_file="index_generator/provided/lars_files_reduced.txt")
+            index_file="index_generator/provided/lars_files.txt")
