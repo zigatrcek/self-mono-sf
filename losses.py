@@ -509,8 +509,8 @@ class Eval_SceneFlow_KITTI_Train(nn.Module):
 
     def forward(self, output_dict, target_dict):
         logging.info("Evaluating SceneFlow KITTI Train")
-        logging.info("output_dict: {}".format(output_dict.keys()))
-        logging.info("target_dict: {}".format(target_dict.keys()))
+        # logging.info("output_dict: {}".format(output_dict.keys()))
+        # logging.info("target_dict: {}".format(target_dict.keys()))
 
 
         loss_dict = {}
@@ -524,9 +524,9 @@ class Eval_SceneFlow_KITTI_Train(nn.Module):
         gt_disp2_occ = target_dict['target_disp2_occ']
         gt_disp2_mask = (target_dict['target_disp2_mask_occ']==1).float()
 
-        logging.info(f'gt_flow_mask: {gt_flow_mask.shape}')
-        logging.info(f'gt_disp_mask: {gt_disp_mask.shape}')
-        logging.info(f'gt_disp2_mask: {gt_disp2_mask.shape}')
+        # logging.info(f'gt_flow_mask: {gt_flow_mask.shape}')
+        # logging.info(f'gt_disp_mask: {gt_disp_mask.shape}')
+        # logging.info(f'gt_disp2_mask: {gt_disp2_mask.shape}')
 
         gt_sf_mask = gt_flow_mask * gt_disp_mask * gt_disp2_mask
 
@@ -538,10 +538,10 @@ class Eval_SceneFlow_KITTI_Train(nn.Module):
 
         batch_size, _, _, width = gt_disp.size()
 
-        logging.info(f'disp_l1_pp shape: {output_dict["disp_l1_pp"][0].shape}')
+        # logging.info(f'disp_l1_pp shape: {output_dict["disp_l1_pp"][0].shape}')
 
         out_disp_l1 = interpolate2d_as(output_dict["disp_l1_pp"][0], gt_disp, mode="bilinear") * width
-        logging.info(f'out_disp_l1 shape: {out_disp_l1.shape}')
+        # logging.info(f'out_disp_l1 shape: {out_disp_l1.shape}')
         out_depth_l1 = _disp2depth_kitti_K(out_disp_l1, intrinsics[:, 0, 0])
         out_depth_l1 = torch.clamp(out_depth_l1, 1e-3, 80)
         gt_depth_l1 = _disp2depth_kitti_K(gt_disp, intrinsics[:, 0, 0])
@@ -1512,9 +1512,10 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
 
 
     def forward(self, output_dict, target_dict):
-        logging.info("Evaluating on MODS")
-        logging.info("output_dict: {}".format(output_dict.keys()))
-        logging.info("target_dict: {}".format(target_dict.keys()))
+        # logging.info("Evaluating on MODS")
+        # logging.info("output_dict: {}".format(output_dict.keys()))
+        # logging.info("target_dict: {}".format(target_dict.keys()))
+        vis = False
 
 
         loss_dict = {}
@@ -1532,14 +1533,14 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
         # plt.show()
 
 
-        logging.info(f'input_l1: {input_l1.shape}')
-        logging.info(f'basename: {target_dict["basename"]}')
+        # logging.info(f'input_l1: {input_l1.shape}')
+        # logging.info(f'basename: {target_dict["basename"]}')
 
         # predict disparity with SGM, only use confidence > 0.5
         # then compare to output disparity from model
         window_size = 3
         min_disp = 0
-        num_disp = 112 - min_disp
+        num_disp = 80-min_disp
         # stereo = cv2.StereoSGBM_create(
         #     minDisparity=min_disp,
         #     numDisparities=num_disp,
@@ -1552,6 +1553,7 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
         #     speckleRange = 2,
         # )
         stereo = cv2.StereoSGBM_create(
+            minDisparity=min_disp,
             numDisparities=num_disp,
             uniquenessRatio = 50,
             disp12MaxDiff = 1,
@@ -1562,40 +1564,39 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
         r1_np = input_r1[0].permute(1,2,0).cpu().numpy() * 255.0
         r1_np = r1_np.astype(np.uint8)
         disp = stereo.compute(l1_np, r1_np).astype(np.float32) / 16.0
-        disp /= disp.max()
-        logging.info(f'l1_np mean: {l1_np.mean()}: type: {l1_np.dtype}')
-        print(f'l1_np: shape: {l1_np.shape}, type: {l1_np.dtype}')
-        print(f'r1_np: shape: {r1_np.shape}, type: {r1_np.dtype}')
-        plt.subplot(2, 2, 1)
-        plt.title('left')
-        plt.imshow(l1_np.astype(np.float32)/255.0)
-        plt.subplot(2, 2, 2)
-        plt.title('right')
-        plt.imshow(r1_np.astype(np.float32)/255.0)
-        print(disp.shape)
-        print(disp.mean())
-        print(disp.max())
-        plt.subplot(2, 2, 3)
-        plt.title('sgm disp')
-        plt.imshow(disp)
+        # disp /= disp.max()
+        # logging.info(f'l1_np mean: {l1_np.mean()}: type: {l1_np.dtype}')
+        # print(f'l1_np: shape: {l1_np.shape}, type: {l1_np.dtype}')
+        # print(f'r1_np: shape: {r1_np.shape}, type: {r1_np.dtype}')
+        if vis:
+            plt.subplot(2, 2, 1)
+            plt.title('left')
+            plt.imshow(l1_np.astype(np.float32)/255.0)
+            plt.subplot(2, 2, 2)
+            plt.title('right')
+            plt.imshow(r1_np.astype(np.float32)/255.0)
+
         disp_tensor = torch.from_numpy(disp).unsqueeze(0).unsqueeze(0).cuda()
 
-        plt.subplot(2, 2, 4)
-        plt.title('model disp')
+
 
         batch_size, _, _, width = disp_tensor.size()
         out_disp_l1 = interpolate2d_as(output_dict["disp_l1_pp"][0], disp_tensor, mode="bilinear") * width
         out_disp_l1 = torch.clamp(out_disp_l1, 1e-3, 80)
-        logging.info(f'out_disp_l1: {out_disp_l1.shape}')
-        out_disp_l1_n = out_disp_l1[0,0].cpu().numpy()
-        logging.info(f'out_disp_l1: {out_disp_l1_n.shape}')
-        # logging.info(f'disp_mask: {disp_mask.shape}')
-        out_disp_l1_n = out_disp_l1_n * (disp > 0)
-        plt.imshow(out_disp_l1_n)
-        plt.show()
+        out_disp_l1 = out_disp_l1 * (disp_tensor > 0).float()
 
-        # cv2.imshow('l1_np', l1_np)
-        # cv2.waitKey(0)
+        # # clear figure
+        # plt.clf()
+        # plt.subplot(2, 2, 1)
+        # plt.title('sgm disp')
+        # # histogram of original disparity
+        # plt.hist(disp.flatten(), bins=100)
+        # plt.subplot(2, 2, 2)
+        # plt.title('model disp')
+        # # histogram of model disparity
+        # plt.hist(out_disp_l1_n.flatten(), bins=100)
+        # plt.show()
+
 
         disp_mask = disp > 0
         disp_mask_torch = torch.from_numpy(disp_mask).unsqueeze(0).unsqueeze(0).cuda()
@@ -1604,21 +1605,43 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
         disp_mask_f = disp_mask_torch.float()
 
         disp_torch = torch.from_numpy(disp).unsqueeze(0).unsqueeze(0).cuda()
+        disp_torch = torch.clamp(disp_torch, 1e-3, 80)
 
-        out_disp_l1 = out_disp_l1 / out_disp_l1.max()
 
-        logging.info(f'model disp max: {out_disp_l1.max()}, min: {out_disp_l1.min()}')
-        logging.info(f'SGM disp max: {disp_torch.max()}, min: {disp_torch.min()}')
+        # out_disp_l1 = out_disp_l1 / out_disp_l1.max()
+
+        # logging.info(f'before standardization: model disp max: {out_disp_l1.max()}, min: {out_disp_l1.min()}, mean: {out_disp_l1.mean()}')
+        # logging.info(f'before standardization: SGM disp max: {disp_torch.max()}, min: {disp_torch.min()}, mean: {disp_torch.mean()}')
+        # standardize both
+        out_disp_l1 = (out_disp_l1 - out_disp_l1.mean()) / out_disp_l1.std()
+        disp_torch = (disp_torch - disp_torch.mean()) / disp_torch.std()
+        # logging.info(f'after: model disp max: {out_disp_l1.max()}, min: {out_disp_l1.min()}, mean: {out_disp_l1.mean()}')
+        # logging.info(f'after: SGM disp max: {disp_torch.max()}, min: {disp_torch.min()}, mean: {disp_torch.mean()}')
+
+        ### VISUALIZATION
+
+        if vis:
+            plt.subplot(2, 2, 3)
+            plt.title('sgm disp')
+            plt.imshow(disp_torch.cpu().numpy()[0,0])
+
+            plt.subplot(2, 2, 4)
+            plt.title('model disp')
+            plt.imshow(out_disp_l1.cpu().numpy()[0,0])
+
+            plt.show()
+    	### END VISUALIZATION
 
         ## KITTI disparity metric
         d_valid_epe = _elementwise_epe(out_disp_l1, disp_torch) * disp_mask_f
+        # For this benchmark, we consider a pixel to be correctly estimated if the disparity or flow end-point error is <3px or <5%.
         d_outlier_epe = (d_valid_epe > 3).float() * ((d_valid_epe / disp_torch) > 0.05).float() * disp_mask_f
-        loss_dict["otl"] = (d_outlier_epe.view(batch_size, -1).sum(1)).mean() / 91875.68
-        loss_dict["otl_img"] = d_outlier_epe
-        logging.info(f'otl: {loss_dict["otl"]}')
+        loss_dict["otl"] = (d_outlier_epe.view(batch_size, -1).sum(1)).mean()
+        # logging.info(f'otl: {loss_dict["otl"]}')
 
-        plt.imshow(loss_dict["otl_img"].cpu().numpy()[0,0])
-        plt.show()
+        # loss_dict["otl_img"] = d_outlier_epe
+        # plt.imshow(d_outlier_epe.cpu().numpy()[0,0])
+        # plt.show()
 
         # cv2.imshow('disp', disp)
         # cv2.waitKey(0)
@@ -1633,71 +1656,4 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
 
         # gt_disp2_occ = target_dict['target_disp2_occ']
         # gt_disp2_mask = (target_dict['target_disp2_mask_occ']==1).float()
-
-
-        intrinsics = target_dict['input_k_l1']
-
-        ##################################################
-        ## Depth 1
-        ##################################################
-
-
-        logging.info(f'disp_l1_pp shape: {output_dict["disp_l1_pp"][0].shape}')
-
-        logging.info(f'out_disp_l1 shape: {out_disp_l1.shape}')
-        out_depth_l1 = _disp2depth_kitti_K(out_disp_l1, intrinsics[:, 0, 0])
-        out_depth_l1 = torch.clamp(out_depth_l1, 1e-3, 80)
-        gt_depth_l1 = _disp2depth_kitti_K(gt_disp, intrinsics[:, 0, 0])
-
-        dict_disp0_occ = eval_module_disp_depth(gt_disp, gt_disp_mask.bool(), out_disp_l1, gt_depth_l1, out_depth_l1)
-
-        output_dict["out_disp_l_pp"] = out_disp_l1
-        output_dict["out_depth_l_pp"] = out_depth_l1
-
-        d0_outlier_image = dict_disp0_occ['otl_img']
-        loss_dict["d_abs"] = dict_disp0_occ['abs_rel']
-        loss_dict["d_sq"] = dict_disp0_occ['sq_rel']
-        loss_dict["d1"] = dict_disp0_occ['otl']
-
-        ##################################################
-        ## Optical Flow Eval
-        ##################################################
-
-        out_sceneflow = interpolate2d_as(output_dict['flow_f_pp'][0], gt_flow, mode="bilinear")
-        out_flow = projectSceneFlow2Flow(target_dict['input_k_l1'], out_sceneflow, output_dict["out_disp_l_pp"])
-
-        ## Flow Eval
-        valid_epe = _elementwise_epe(out_flow, gt_flow) * gt_flow_mask
-        loss_dict["f_epe"] = (valid_epe.view(batch_size, -1).sum(1)).mean() / 91875.68
-        output_dict["out_flow_pp"] = out_flow
-
-        flow_gt_mag = torch.norm(target_dict["target_flow"], p=2, dim=1, keepdim=True) + 1e-8
-        flow_outlier_epe = (valid_epe > 3).float() * ((valid_epe / flow_gt_mag) > 0.05).float() * gt_flow_mask
-        loss_dict["f1"] = (flow_outlier_epe.view(batch_size, -1).sum(1)).mean() / 91875.68
-
-
-        ##################################################
-        ## Depth 2
-        ##################################################
-
-        out_depth_l1_next = out_depth_l1 + out_sceneflow[:, 2:3, :, :]
-        out_disp_l1_next = _depth2disp_kitti_K(out_depth_l1_next, intrinsics[:, 0, 0])
-        gt_depth_l1_next = _disp2depth_kitti_K(gt_disp2_occ, intrinsics[:, 0, 0])
-
-        dict_disp1_occ = eval_module_disp_depth(gt_disp2_occ, gt_disp2_mask.bool(), out_disp_l1_next, gt_depth_l1_next, out_depth_l1_next)
-
-        output_dict["out_disp_l_pp_next"] = out_disp_l1_next
-        output_dict["out_depth_l_pp_next"] = out_depth_l1_next
-
-        d1_outlier_image = dict_disp1_occ['otl_img']
-        loss_dict["d2"] = dict_disp1_occ['otl']
-
-
-        ##################################################
-        ## Scene Flow Eval
-        ##################################################
-
-        outlier_sf = (flow_outlier_epe.bool() + d0_outlier_image.bool() + d1_outlier_image.bool()).float() * gt_sf_mask
-        loss_dict["sf"] = (outlier_sf.view(batch_size, -1).sum(1)).mean() / 91873.4
-
         return loss_dict

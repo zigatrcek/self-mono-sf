@@ -26,7 +26,7 @@ python ../main.py \
 --validation_dataset=$Valid_Dataset \
 --validation_dataset_root=$KITTI_HOME \
 --validation_loss=$Valid_Loss_Function \
---validation_key=sf \
+--validation_key=otl \
 --validation_dataset_num_examples=100 \
 # --save_disp=True \
 # --save_disp2=True \
