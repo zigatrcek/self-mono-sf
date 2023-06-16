@@ -335,10 +335,10 @@ class Augmentation_SceneFlow(Augmentation_ScaleCrop):
         params_scale, _, _, _ = self.decompose_params(params)
 
         ## Augment images
-        im_l1 = tf.grid_sample(im_l1, coords)
-        im_l2 = tf.grid_sample(im_l2, coords)
-        im_r1 = tf.grid_sample(im_r1, coords)
-        im_r2 = tf.grid_sample(im_r2, coords)
+        im_l1 = tf.grid_sample(im_l1, coords, align_corners=True)
+        im_l2 = tf.grid_sample(im_l2, coords, align_corners=True)
+        im_r1 = tf.grid_sample(im_r1, coords, align_corners=True)
+        im_r2 = tf.grid_sample(im_r2, coords, align_corners=True)
 
         ## Augment intrinsic matrix
         k_list = [k_l1.unsqueeze(1), k_l2.unsqueeze(1), k_r1.unsqueeze(1), k_r2.unsqueeze(1)]
@@ -419,8 +419,8 @@ class Augmentation_MonoDepth(Augmentation_ScaleCrop):
         params_scale, _, _, _ = self.decompose_params(params)
 
         ## Augment images
-        im_l1 = tf.grid_sample(im_l1, coords)
-        im_r1 = tf.grid_sample(im_r1, coords)
+        im_l1 = tf.grid_sample(im_l1, coords, align_corners=True)
+        im_r1 = tf.grid_sample(im_r1, coords, align_corners=True)
 
         ## Augment intrinsic matrix
         k_list = [k_l1.unsqueeze(1), k_r1.unsqueeze(1)]

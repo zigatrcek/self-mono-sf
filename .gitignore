@@ -11,3 +11,6 @@ modd2/
 eval/
 data/
 checkpoints/
+*.ninja
+*.ninja_log
+*.ninja_deps

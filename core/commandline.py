@@ -73,7 +73,7 @@ def _add_arguments_for_module(parser,
     # Determine constructor argument names and defaults
     # -------------------------------------------------------------------------
     try:
-        argspec = inspect.getargspec(class_constructor.__init__)
+        argspec = inspect.getfullargspec(class_constructor.__init__)
         argspec_defaults = argspec.defaults if argspec.defaults is not None else []
         full_args = argspec.args
         default_args_dict = dict(zip(argspec.args[-len(argspec_defaults):], argspec_defaults))

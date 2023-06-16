@@ -28,10 +28,10 @@ class WarpingLayer_Flow(nn.Module):
         flo_list.append(flo_h)
         flow_for_grid = torch.stack(flo_list).transpose(0, 1)
         grid = torch.add(get_grid(x), flow_for_grid).transpose(1, 2).transpose(2, 3)
-        x_warp = tf.grid_sample(x, grid)
+        x_warp = tf.grid_sample(x, grid, align_corners=True)
 
         mask = torch.ones(x.size(), requires_grad=False).cuda()
-        mask = tf.grid_sample(mask, grid)
+        mask = tf.grid_sample(mask, grid, align_corners=True)
         mask = (mask >= 1.0).float()
 
         return x_warp * mask
@@ -54,10 +54,10 @@ class WarpingLayer_SF(nn.Module):
         _, _, coord1 = pts2pixel_ms(k1_scale, pts1, sceneflow, [h_x, w_x])
 
         grid = coord1.transpose(1, 2).transpose(2, 3)
-        x_warp = tf.grid_sample(x, grid)
+        x_warp = tf.grid_sample(x, grid, align_corners=True)
 
         mask = torch.ones_like(x, requires_grad=False)
-        mask = tf.grid_sample(mask, grid)
+        mask = tf.grid_sample(mask, grid, align_corners=True)
         mask = (mask >= 1.0).float()
 
         return x_warp * mask
