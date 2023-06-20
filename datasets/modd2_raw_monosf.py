@@ -6,7 +6,7 @@ import torch.utils.data as data
 import numpy as np
 
 from torchvision import transforms as vision_transforms
-from .common import read_image_as_byte, read_modd2_calib_into_dict
+from .common import read_image_as_byte, read_modd2_calib_into_dict, read_annotation
 from .common import kitti_crop_image_list, kitti_adjust_intrinsic
 import logging
 
@@ -43,10 +43,19 @@ class MODD2_Raw(data.Dataset):
         if not os.path.isdir(images_root):
             raise ValueError(f"Image directory '{images_root}' not found!")
 
+        annotations_root = os.path.normpath(os.path.join(images_root, '../annotationsV2_rectified'))
+        logging.info(f'Annotations root: {annotations_root}')
+
+
+        if not os.path.isdir(annotations_root):
+            raise ValueError(f"Annotations directory '{annotations_root}' not found!")
+
         filename_list = [line.rstrip().split(' ') for line in index_file.readlines()]
         logging.debug(f'Number of images: {len(filename_list)}')
         self._image_list = []
+        self._annotations_list = []
         ext = '.jpg'
+        ann_ext = '.mat'
 
         for item in filename_list:
             scene = item[0]
@@ -58,8 +67,28 @@ class MODD2_Raw(data.Dataset):
             name_r1 = os.path.join(images_root, scene, 'framesRectified', idx_src) + 'R' + ext
             name_r2 = os.path.join(images_root, scene, 'framesRectified', idx_tgt) + 'R' + ext
 
-            if os.path.isfile(name_l1) and os.path.isfile(name_l2) and os.path.isfile(name_r1) and os.path.isfile(name_r2):
-                self._image_list.append([name_l1, name_l2, name_r1, name_r2])
+            name_ann_l1 = os.path.join(annotations_root, scene, 'ground_truth', idx_src) + 'L' + ann_ext
+            name_ann_l2 = os.path.join(annotations_root, scene, 'ground_truth', idx_tgt) + 'L' + ann_ext
+
+            if all([
+                os.path.isfile(name_l1),
+                os.path.isfile(name_l2),
+                os.path.isfile(name_r1),
+                os.path.isfile(name_r2),
+                os.path.isfile(name_ann_l1),
+                os.path.isfile(name_ann_l2),
+            ]):
+                # logging.info(f'All files exist.')
+                self._image_list.append([
+                    name_l1,
+                    name_l2,
+                    name_r1,
+                    name_r2,
+                ])
+                self._annotations_list.append([
+                    name_ann_l1,
+                    name_ann_l2,
+                ])
 
 
         if num_examples > 0:
@@ -86,6 +115,10 @@ class MODD2_Raw(data.Dataset):
         # read images and flow
         # im_l1, im_l2, im_r1, im_r2
         img_list_np = [read_image_as_byte(img) for img in self._image_list[index]]
+        annotations_list = [read_annotation(img) for img in self._annotations_list[index]]
+        # logging.info(f'annotations_list: {annotations_list}')
+        for annotation in annotations_list[0]['annotations']:
+            logging.info(f'annotation: {annotation}')
 
         # example filename
         im_l1_filename = self._image_list[index][0]
@@ -119,6 +152,8 @@ class MODD2_Raw(data.Dataset):
         im_l2 = img_list_tensor[1]
         im_r1 = img_list_tensor[2]
         im_r2 = img_list_tensor[3]
+
+
 
         common_dict = {
             "index": index,

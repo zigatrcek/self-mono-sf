@@ -9,6 +9,7 @@ import png
 import cv2
 import logging
 import matplotlib.pyplot as plt
+import scipy.io as sio
 
 width_to_date = dict()
 width_to_date[1242] = '2011_09_26'
@@ -50,6 +51,10 @@ def kitti_crop_image_list(img_list, crop_info):
     end_x = crop_info[2]
     end_y = crop_info[3]
 
+    if img_list[0].ndim == 2:
+        transformed = [img[str_y:end_y, str_x:end_x] for img in img_list]
+        return transformed
+
     transformed = [img[str_y:end_y, str_x:end_x, :] for img in img_list]
 
     return transformed
@@ -66,6 +71,9 @@ def numpy2torch(array):
 
 def read_image_as_byte(filename):
     return io.imread(filename)
+
+def read_annotation(filename):
+    return sio.loadmat(filename)
 
 
 def read_png_flow(flow_file):

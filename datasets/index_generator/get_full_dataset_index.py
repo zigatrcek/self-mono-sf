@@ -26,6 +26,24 @@ def iter_subtree(path, index_path, lars=False):
             else:
                 raise FileNotFoundError()
 
+
+def iter_mastr(path, index_path):
+    """Find all frames in the MAStR dataset and index them.
+
+    Args:
+        path (str): Path to the MAStR dataset.
+        index_path (str): Where the index file should be written.
+    """
+
+
+    # make Path object from input string
+    path = Path(path)
+    with open(index_path, 'w+') as index_file:
+        # iter the directory
+        for f in sorted(path.iterdir()):
+            index_file.write(f'{f.name}\n')
+
 if __name__ == '__main__':
     iter_subtree('../../../data/modd2/rectified_video_data/', './provided/modd2_files.txt')
     iter_subtree('../../../data/LaRS_v0.9.3/', './provided/lars_files.txt', lars=True)
+    iter_mastr('../../../data/mastr1325/MaSTr1325_images_512x384/', './provided/mastr_files.txt')
