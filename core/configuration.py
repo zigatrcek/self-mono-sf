@@ -397,10 +397,12 @@ def configure_data_loaders(args):
             # Create training dataset
             # ----------------------------------------------
             train_dataset = tools.instance_from_kwargs(args.training_dataset_class, kwargs)
+            logging.info("Training Dataset: %s" % train_dataset)
+            # exit()
 
             # ----------------------------------------------
             # Create training loader
-            # ----------------------------------------------            
+            # ----------------------------------------------
             if args.training_dataset == 'KITTI_Comb_Train' or args.training_dataset == 'KITTI_Comb_Full' :
                 custom_batch_sampler = CustomBatchSampler([RandomSampler(train_dataset.dataset1), RandomSampler(train_dataset.dataset2)])
                 train_loader = DataLoader(dataset=train_dataset, batch_sampler=custom_batch_sampler, **gpuargs)
@@ -585,7 +587,7 @@ def configure_lr_scheduler(args, optimizer):
             # Figure out lr_scheduler arguments
             # ----------------------------------------------
             kwargs = tools.kwargs_from_args(args, "lr_scheduler")
-            
+
             # -------------------------------------------
             # Print arguments
             # -------------------------------------------

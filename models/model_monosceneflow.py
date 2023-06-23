@@ -25,12 +25,12 @@ class MonoSceneFlow(nn.Module):
         self.search_range = 4
         self.output_level = 4
         self.num_levels = 7
-        
+
         self.leakyRELU = nn.LeakyReLU(0.1, inplace=True)
 
         self.feature_pyramid_extractor = FeatureExtractor(self.num_chs)
         self.warping_layer_sf = WarpingLayer_SF()
-        
+
         self.flow_estimators = nn.ModuleList()
         self.upconv_layers = nn.ModuleList()
 
@@ -41,22 +41,22 @@ class MonoSceneFlow(nn.Module):
                 break
 
             if l == 0:
-                num_ch_in = self.dim_corr + ch 
+                num_ch_in = self.dim_corr + ch
             else:
                 num_ch_in = self.dim_corr + ch + 32 + 3 + 1
                 self.upconv_layers.append(upconv(32, 32, 3, 2))
 
-            layer_sf = MonoSceneFlowDecoder(num_ch_in)            
-            self.flow_estimators.append(layer_sf)            
+            layer_sf = MonoSceneFlowDecoder(num_ch_in)
+            self.flow_estimators.append(layer_sf)
 
-        self.corr_params = {"pad_size": self.search_range, "kernel_size": 1, "max_disp": self.search_range, "stride1": 1, "stride2": 1, "corr_multiply": 1}        
+        self.corr_params = {"pad_size": self.search_range, "kernel_size": 1, "max_disp": self.search_range, "stride1": 1, "stride2": 1, "corr_multiply": 1}
         self.context_networks = ContextNetwork(32 + 3 + 1)
         self.sigmoid = torch.nn.Sigmoid()
 
         initialize_msra(self.modules())
 
     def run_pwc(self, input_dict, x1_raw, x2_raw, k1, k2):
-            
+
         output_dict = {}
 
         # on the bottom level are original images
@@ -106,7 +106,7 @@ class MonoSceneFlow(nn.Module):
                 disp_l1 = self.sigmoid(disp_l1) * 0.3
                 disp_l2 = self.sigmoid(disp_l2) * 0.3
                 sceneflows_f.append(flow_f)
-                sceneflows_b.append(flow_b)                
+                sceneflows_b.append(flow_b)
                 disps_1.append(disp_l1)
                 disps_2.append(disp_l2)
             else:
@@ -117,7 +117,7 @@ class MonoSceneFlow(nn.Module):
                 sceneflows_f.append(flow_f)
                 sceneflows_b.append(flow_b)
                 disps_1.append(disp_l1)
-                disps_2.append(disp_l2)                
+                disps_2.append(disp_l2)
                 break
 
         x1_rev = x1_pyramid[::-1]
@@ -126,7 +126,7 @@ class MonoSceneFlow(nn.Module):
         output_dict['flow_b'] = upsample_outputs_as(sceneflows_b[::-1], x1_rev)
         output_dict['disp_l1'] = upsample_outputs_as(disps_1[::-1], x1_rev)
         output_dict['disp_l2'] = upsample_outputs_as(disps_2[::-1], x1_rev)
-        
+
         return output_dict
 
 
@@ -136,10 +136,13 @@ class MonoSceneFlow(nn.Module):
 
         ## Left
         output_dict = self.run_pwc(input_dict, input_dict['input_l1_aug'], input_dict['input_l2_aug'], input_dict['input_k_l1_aug'], input_dict['input_k_l2_aug'])
-        
+
         ## Right
-        ## ss: train val 
-        ## ft: train 
+        ## ss: train val
+        ## ft: train
+        logging.info(f'self.training: {self.training}')
+        logging.info(f'self._args.finetuning: {self._args.finetuning}')
+        logging.info(f'self._args.evaluation: {self._args.evaluation}')
         if self.training or (not self._args.finetuning and not self._args.evaluation):
             input_r1_flip = torch.flip(input_dict['input_r1_aug'], [3])
             input_r2_flip = torch.flip(input_dict['input_r2_aug'], [3])
@@ -156,7 +159,7 @@ class MonoSceneFlow(nn.Module):
 
             output_dict['output_dict_r'] = output_dict_r
 
-        ## Post Processing 
+        ## Post Processing
         ## ss:           eval
         ## ft: train val eval
         if self._args.evaluation or self._args.finetuning:

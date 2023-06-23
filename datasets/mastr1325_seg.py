@@ -15,7 +15,7 @@ class MaSTr1325_Base(data.Dataset):
     def __init__(self,
                  args,
                  images_root=None,
-                 flip_augmentations=True,
+                 flip_augmentations=False,
                  preprocessing_crop=True,
                  crop_size=[384, 512],
                  num_examples=-1,
@@ -67,16 +67,16 @@ class MaSTr1325_Base(data.Dataset):
                 filename_tgt = idx_tgt + ext
             elif len(item) == 8:
                 # old_ + id, old_0001
-                logging.info(f'item: {item}')
-                logging.info(f'item[-4:]: {item[-4:]}')
+                logging.debug(f'item: {item}')
+                logging.debug(f'item[-4:]: {item[-4:]}')
                 idx_src = f'{int(item[-4:]):04}'
                 idx_tgt = f'{(int(item[-4:]) + 1):04}'
                 filename_src = 'old_' + idx_src + ext
                 filename_tgt = 'old_' + idx_tgt + ext
             else:
                 # old_ + 8 digit id + L, old_00000001L
-                logging.info(f'item: {item}')
-                logging.info(f'item[-9:-1]: {item[-9:-1]}')
+                logging.debug(f'item: {item}')
+                logging.debug(f'item[-9:-1]: {item[-9:-1]}')
                 idx_src = f'{int(item[-9:-1]):04}'
                 idx_tgt = f'{(int(item[-9:-1]) + 1):04}'
                 filename_src = 'old_' + idx_src + 'L' + ext
@@ -84,15 +84,15 @@ class MaSTr1325_Base(data.Dataset):
             filename_ann_src = filename_src.split('.')[0] + 'm' + ann_ext
             filename_ann_tgt = filename_tgt.split('.')[0] + 'm' + ann_ext
 
-            logging.info(f'filename_src: {filename_src}')
+            logging.debug(f'filename_src: {filename_src}')
             name_l1 = os.path.join(images_root, filename_src)
             name_l2 = os.path.join(images_root, filename_tgt)
-            logging.info(f'name_l1: {name_l1}, exists: {os.path.isfile(name_l1)}')
-            logging.info(f'name_l2: {name_l2}, exists: {os.path.isfile(name_l2)}')
+            logging.debug(f'name_l1: {name_l1}, exists: {os.path.isfile(name_l1)}')
+            logging.debug(f'name_l2: {name_l2}, exists: {os.path.isfile(name_l2)}')
             ann_l1 = os.path.join(annotations_root, filename_ann_src)
             ann_l2 = os.path.join(annotations_root, filename_ann_tgt)
-            logging.info(f'ann_l1: {ann_l1}, exists: {os.path.isfile(ann_l1)}')
-            logging.info(f'ann_l2: {ann_l2}, exists: {os.path.isfile(ann_l2)}')
+            logging.debug(f'ann_l1: {ann_l1}, exists: {os.path.isfile(ann_l1)}')
+            logging.debug(f'ann_l2: {ann_l2}, exists: {os.path.isfile(ann_l2)}')
 
             if all([
                 os.path.isfile(name_l1),
@@ -100,12 +100,11 @@ class MaSTr1325_Base(data.Dataset):
                 os.path.isfile(ann_l1),
                 os.path.isfile(ann_l2)
             ]):
-                logging.info(f'All files exist.')
+                logging.debug(f'All files exist.')
                 self._image_list.append([name_l1, name_l2])
                 self._annotations_list.append([ann_l1, ann_l2])
             else:
-                logging.error(f'Not all files exist.')
-                # raise ValueError(f'Not all files exist.')
+                logging.debug(f'Not all files exist.')
         logging.info(f'Number of images: {len(self._image_list)}')
 
         if num_examples > 0:
@@ -135,7 +134,7 @@ class MaSTr1325_Base(data.Dataset):
         # read images
         # im_l1, im_l2
         img_list_np = [read_image_as_byte(img) for img in self._image_list[index]]
-        logging.info(f'img_list_np[0].shape: {img_list_np[0].shape}')
+        # logging.info(f'img_list_np[0].shape: {img_list_np[0].shape}')
 
         # example filename
         im_l1_filename = self._image_list[index][0]
@@ -153,9 +152,9 @@ class MaSTr1325_Base(data.Dataset):
 
         # read annotations
         # ann_l1, ann_l2
-        logging.info(f'Loading annotations: {self._annotations_list[index]}')
+        logging.debug(f'Loading annotations: {self._annotations_list[index]}')
         ann_list_np = [read_image_as_byte(ann) for ann in self._annotations_list[index]]
-        logging.info(f'ann_list_np[0].shape: {ann_list_np[0].shape}')
+        logging.debug(f'ann_list_np[0].shape: {ann_list_np[0].shape}')
 
         # example filename
         ann_l1_filename = self._annotations_list[index][0]
@@ -182,7 +181,7 @@ class MaSTr1325_Base(data.Dataset):
 
         # to tensors
         img_list_tensor = [self._to_tensor(img) for img in img_list_np]
-        ann_list_tensor = [self._to_tensor(ann) for ann in ann_list_np]
+        ann_list_tensor = [(self._to_tensor(ann) * 255).long() for ann in ann_list_np]
 
         im_l1 = img_list_tensor[0]
         im_l2 = img_list_tensor[1]
@@ -215,7 +214,15 @@ class MaSTr1325_Base(data.Dataset):
                 "input_k_r2": k_r1,
             }
             example_dict.update(common_dict)
-
+        # logging.info(f'example_dict ann_l1: {example_dict["ann_l1"].shape}')
+        # logging.info(f'example_dict ann_l2: {example_dict["ann_l2"].shape}')
+        # logging.info(f'example_dict input_l1: {example_dict["input_l1"].shape}')
+        # logging.info(f'example_dict input_l2: {example_dict["input_l2"].shape}')
+        # logging.info(f'example_dict input_k_l1: {example_dict["input_k_l1"].shape}')
+        # logging.info(f'example_dict input_k_r1: {example_dict["input_k_r1"].shape}')
+        # logging.info(f'example_dict input_k_l2: {example_dict["input_k_l2"].shape}')
+        # logging.info(f'example_dict input_k_r2: {example_dict["input_k_r2"].shape}')
+        # exit()
         return example_dict
 
     def __len__(self):

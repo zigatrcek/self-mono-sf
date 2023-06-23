@@ -7,6 +7,7 @@ import numpy as np
 
 from utils.interpolation import interpolate2d
 from utils.interpolation import Interp2, Meshgrid
+import logging
 
 
 class PhotometricAugmentation(nn.Module):
@@ -302,6 +303,44 @@ class Augmentation_ScaleCrop(nn.Module):
 
         return intrinsics
 
+
+class NoAugmentation(Augmentation_ScaleCrop):
+    def __init__(self, args, photometric=True, trans=0.07, scale=[0.93, 1.0], resize=[256, 832]):
+        super(NoAugmentation, self).__init__(
+            args,
+            photometric=photometric,
+            trans=trans,
+            scale=scale,
+            resize=resize)
+
+    def forward(self, example_dict):
+
+        im_l1 = example_dict["input_l1"]
+        im_l2 = example_dict["input_l2"]
+        k_l1 = example_dict["input_k_l1"].clone()
+        k_l2 = example_dict["input_k_l2"].clone()
+
+        k_l1_flip = k_l1.clone()
+        k_l2_flip = k_l2.clone()
+
+        k_l1_flip[:, 0, 2] = im_l1.size(3) - k_l1_flip[:, 0, 2]
+        k_l2_flip[:, 0, 2] = im_l2.size(3) - k_l2_flip[:, 0, 2]
+
+        example_dict["input_k_l1_flip_aug"] = k_l1_flip
+        example_dict["input_k_l2_flip_aug"] = k_l2_flip
+
+        example_dict["aug_size"] = torch.zeros_like(example_dict["input_size"])
+
+        # example_dict["input_coords"] = coords
+        # example_dict["input_aug_scale"] = params_scale
+
+        example_dict["input_l1_aug"] = im_l1
+        example_dict["input_l2_aug"] = im_l2
+
+        example_dict["input_k_l1_aug"] = k_l1
+        example_dict["input_k_l2_aug"] = k_l2
+
+        return example_dict
 
 class Augmentation_SceneFlow(Augmentation_ScaleCrop):
     def __init__(self, args, photometric=True, trans=0.07, scale=[0.93, 1.0], resize=[256, 832]):

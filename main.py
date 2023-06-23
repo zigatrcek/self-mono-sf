@@ -7,7 +7,7 @@ import torch
 from core import commandline, runtime, logger, tools, configuration as config
 
 def main():
-    
+
     # Change working directory
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
@@ -16,7 +16,7 @@ def main():
 
     # Set random seed, possibly on Cuda
     config.configure_random_seed(args)
-    
+
     # DataLoader
     train_loader, validation_loader, inference_loader = config.configure_data_loaders(args)
     success = any(loader is not None for loader in [train_loader, validation_loader, inference_loader])
@@ -30,9 +30,9 @@ def main():
     # Configure model and loss
     model_and_loss = config.configure_model_and_loss(args)
 
-    # Resume from checkpoint if available 
+    # Resume from checkpoint if available
     checkpoint_saver, checkpoint_stats = config.configure_checkpoint_saver(args, model_and_loss)
-    
+
     if checkpoint_stats is not None:
         # Set checkpoint stats
         if args.checkpoint_mode in ["resume_from_best", "resume_from_latest"]:

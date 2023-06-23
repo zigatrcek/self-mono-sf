@@ -200,6 +200,7 @@ def _parse_arguments():
     add("--save_disp2", type=tools.str2bool, default=False)
     add("--save_depth", type=tools.str2bool, default=False)
     add("--finetuning", type=tools.str2bool, default=False)
+    add("--msf_pretrained", type=tools.str2str_or_none, default=None)
 
     # -------------------------------------------------------------------------
     # Arguments inferred from losses
