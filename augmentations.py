@@ -329,7 +329,10 @@ class NoAugmentation(Augmentation_ScaleCrop):
         example_dict["input_k_l1_flip_aug"] = k_l1_flip
         example_dict["input_k_l2_flip_aug"] = k_l2_flip
 
-        example_dict["aug_size"] = torch.zeros_like(example_dict["input_size"])
+        aug_size = torch.zeros_like(example_dict["input_size"])
+        aug_size[:, 0] = self._resize[0]
+        aug_size[:, 1] = self._resize[1]
+        example_dict["aug_size"] = aug_size
 
         # example_dict["input_coords"] = coords
         # example_dict["input_aug_scale"] = params_scale

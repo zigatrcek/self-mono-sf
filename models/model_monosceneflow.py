@@ -136,7 +136,6 @@ class MonoSceneFlow(nn.Module):
 
         ## Left
         output_dict = self.run_pwc(input_dict, input_dict['input_l1_aug'], input_dict['input_l2_aug'], input_dict['input_k_l1_aug'], input_dict['input_k_l2_aug'])
-
         ## Right
         ## ss: train val
         ## ft: train
