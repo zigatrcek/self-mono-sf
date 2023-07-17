@@ -1515,7 +1515,7 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
         # logging.info("Evaluating on MODS")
         # logging.info("output_dict: {}".format(output_dict.keys()))
         # logging.info("target_dict: {}".format(target_dict.keys()))
-        vis = False
+        vis = True
 
 
         loss_dict = {}
@@ -1564,10 +1564,6 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
         r1_np = input_r1[0].permute(1,2,0).cpu().numpy() * 255.0
         r1_np = r1_np.astype(np.uint8)
         disp = stereo.compute(l1_np, r1_np).astype(np.float32) / 16.0
-        # disp /= disp.max()
-        # logging.info(f'l1_np mean: {l1_np.mean()}: type: {l1_np.dtype}')
-        # print(f'l1_np: shape: {l1_np.shape}, type: {l1_np.dtype}')
-        # print(f'r1_np: shape: {r1_np.shape}, type: {r1_np.dtype}')
         if vis:
             plt.subplot(2, 2, 1)
             plt.title('left')
@@ -1577,8 +1573,6 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
             plt.imshow(r1_np.astype(np.float32)/255.0)
 
         disp_tensor = torch.from_numpy(disp).unsqueeze(0).unsqueeze(0).cuda()
-
-
 
         batch_size, _, _, width = disp_tensor.size()
         out_disp_l1 = interpolate2d_as(output_dict["disp_l1_pp"][0], disp_tensor, mode="bilinear") * width
@@ -1630,6 +1624,7 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
             plt.imshow(out_disp_l1.cpu().numpy()[0,0])
 
             plt.show()
+
     	### END VISUALIZATION
 
         ## KITTI disparity metric
@@ -1639,9 +1634,13 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
         loss_dict["otl"] = (d_outlier_epe.view(batch_size, -1).sum(1)).mean()
         # logging.info(f'otl: {loss_dict["otl"]}')
 
+
         # loss_dict["otl_img"] = d_outlier_epe
-        # plt.imshow(d_outlier_epe.cpu().numpy()[0,0])
-        # plt.show()
+        # if vis:
+        #     plt.subplot(3, 2, 5)
+        #     plt.title('outlier')
+        #     plt.imshow(d_outlier_epe.cpu().numpy()[0,0])
+        #     plt.show()
 
         # cv2.imshow('disp', disp)
         # cv2.waitKey(0)

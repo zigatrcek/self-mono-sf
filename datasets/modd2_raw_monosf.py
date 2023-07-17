@@ -117,8 +117,8 @@ class MODD2_Raw(data.Dataset):
         img_list_np = [read_image_as_byte(img) for img in self._image_list[index]]
         annotations_list = [read_annotation(img) for img in self._annotations_list[index]]
         # logging.info(f'annotations_list: {annotations_list}')
-        for annotation in annotations_list[0]['annotations']:
-            logging.info(f'annotation: {annotation}')
+        # for annotation in annotations_list[0]['annotations']:
+        #     logging.info(f'annotation: {annotation}')
 
         # example filename
         im_l1_filename = self._image_list[index][0]

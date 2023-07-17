@@ -304,6 +304,8 @@ class Augmentation_ScaleCrop(nn.Module):
         return intrinsics
 
 
+
+
 class NoAugmentation(Augmentation_ScaleCrop):
     def __init__(self, args, photometric=True, trans=0.07, scale=[0.93, 1.0], resize=[256, 832]):
         super(NoAugmentation, self).__init__(

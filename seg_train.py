@@ -1,20 +1,19 @@
-import logging
 import torch
 import os
-from core import commandline, runtime, logger, tools, configuration as config
-from datasets import MaSTr1325_Train_mnsf, MaSTr1325_Valid_mnsf
+from datasets import MaSTr1325_Full
 from torch.utils.data import DataLoader, random_split
 from argparse import Namespace
 from models import model_monosceneflow as msf, model_segmentation as mseg
-from augmentations import NoAugmentation
+from augmentations import NoAugmentation, Augmentation_Resize_Only
 import segmentation_models_pytorch as smp
-import matplotlib.pyplot as plt
 from collections import OrderedDict
 import time
+from torch.nn import Upsample as upsample
 
-TRAINING_BATCH_SIZE = 4
+TRAINING_BATCH_SIZE = 2
 VALIDATION_BATCH_SIZE = 1
 EPOCHS = 30
+IMG_SIZE = [960, 1280]
 
 torch.manual_seed(0)
 
@@ -24,7 +23,7 @@ def main():
     # Change working directory
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
     gpuargs = {"num_workers": 12, "pin_memory": True}
-    full_dataset = MaSTr1325_Train_mnsf(
+    full_dataset = MaSTr1325_Full(
         args=Namespace(),
         root='../data/mastr1325/MaSTr1325_images_512x384',
         flip_augmentations=False,
@@ -70,7 +69,8 @@ def main():
     seg_model.train()
     seg_model.cuda()
 
-    augmentation = NoAugmentation(args=Namespace())
+    augmentation = Augmentation_Resize_Only(args=Namespace(), photometric=False, imgsize=IMG_SIZE)
+    # augmentation = NoAugmentation(args=Namespace())
 
     # focal loss
     focal_loss_fn = smp.losses.FocalLoss(mode='multiclass')
@@ -88,6 +88,16 @@ def main():
         return 0.5 * focal_loss + 0.5 * jaccard_loss
 
     min_valid_loss = float('inf')
+
+    upsampler = upsample(IMG_SIZE, mode='nearest', align_corners=None)
+
+    def transform_target(target):
+        target = target.type(torch.float).cuda()
+        target = upsampler(target).squeeze(1).type(torch.int64)
+        # dataset labels are 0, 1, 2, 4
+        target[target == 4] = 3
+        return target
+
 
     for e in range(EPOCHS):
         start_time = time.time()
@@ -111,10 +121,8 @@ def main():
                             [0], msf_out["disp_l1"][0], msf_out["disp_l2"][0]), dim=1)
             seg_out = seg_model(seg_in)
             # optimize
-            target = sample["ann_l1"].squeeze(1).cuda()
-            # dataset labels are 0, 1, 2, 4
-            target[target == 4] = 3
-            # target = target + 1
+            target = transform_target(sample["ann_l1"])
+
             loss = calculate_loss(seg_out, target)
             # print(f'Batch: {batch_idx} Loss: {loss.item()}')
             optimizer.zero_grad()
@@ -143,10 +151,8 @@ def main():
                             [0], msf_out["disp_l1"][0], msf_out["disp_l2"][0]), dim=1)
             seg_out = seg_model(seg_in)
 
-            target = sample["ann_l1"].squeeze(1).cuda()
-            # dataset labels are 0, 1, 2, 4
-            target[target == 4] = 3
-            # target = target + 1
+            target = transform_target(sample["ann_l1"])
+
             loss = calculate_loss(seg_out, target)
             validation_loss += loss.item()
             # print(f'Batch: {batch_idx} Loss: {loss.item()}')
