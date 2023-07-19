@@ -239,6 +239,20 @@ def read_modd2_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
                     intrinsic_dict_r[p.name] = P2[:3, :3]
     return intrinsic_dict_l, intrinsic_dict_r
 
+def read_mods_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
+    intrinsic_dict_l = {}
+    intrinsic_dict_r = {}
+    for p in Path(path_dir).iterdir():
+        P1, P2 = read_yaml_calib_file(str(p.absolute()))
+        logging.debug(f'filename: {p.name}')
+        sequence_name = p.name.split('-')[1].split('.')[0]
+        logging.debug(f'sequence_name: {sequence_name}')
+        logging.debug(f'{P1}')
+
+        intrinsic_dict_l[sequence_name] = P1[:3, :3]
+        intrinsic_dict_r[sequence_name] = P2[:3, :3]
+    return intrinsic_dict_l, intrinsic_dict_r
+
 def read_modd2_calib_from_file(file_path: str) -> 'tuple[np.array, np.array]':
     """Reads MODD2 projection matrices from a calibration file.
 

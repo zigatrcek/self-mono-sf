@@ -6,7 +6,7 @@ import torch.utils.data as data
 import numpy as np
 
 from torchvision import transforms as vision_transforms
-from .common import read_image_as_byte, read_modd2_calib_into_dict, read_annotation
+from .common import read_image_as_byte, read_mods_calib_into_dict, read_annotation
 from .common import kitti_crop_image_list, kitti_adjust_intrinsic
 import logging
 
@@ -15,7 +15,7 @@ class Mods_Base(data.Dataset):
     def __init__(self,
                  args,
                  images_root=None,
-                 flip_augmentations=False,
+                 flip_augmentations=True,
                  preprocessing_crop=True,
                  crop_size=[928, 1248],
                  num_examples=-1,
@@ -29,6 +29,7 @@ class Mods_Base(data.Dataset):
 
         path_dir = os.path.dirname(os.path.realpath(__file__))
         path_index_file = os.path.join(path_dir, index_file)
+        calib_dir = ('/home/bogosort/diploma/data/calibration')
 
         # log index file
         logging.info(f'Index file: {path_index_file}')
@@ -77,9 +78,6 @@ class Mods_Base(data.Dataset):
                 ])
 
         if num_examples > 0:
-            # TODO shuffling doesn't do anything since the data is only loaded in the first epoch.
-            # logging.info(f'Using {num_examples} examples, shuffling...')
-            # np.random.shuffle(self._image_list)
             self._image_list = self._image_list[:num_examples]
 
         self._size = len(self._image_list)
@@ -88,7 +86,7 @@ class Mods_Base(data.Dataset):
         ## loading calibration matrix
         self.intrinsic_dict_l = {}
         self.intrinsic_dict_r = {}
-        self.intrinsic_dict_l, self.intrinsic_dict_r = read_modd2_calib_into_dict(path_dir)
+        self.intrinsic_dict_l, self.intrinsic_dict_r = read_mods_calib_into_dict(calib_dir)
 
         self._to_tensor = vision_transforms.Compose([
             vision_transforms.ToPILImage(),
@@ -111,9 +109,9 @@ class Mods_Base(data.Dataset):
         logging.debug(f'im_l2_filename: {im_l2_filename}')
         # name of sequence directory
         sequence = os.path.basename(os.path.dirname(os.path.dirname(im_l1_filename)))
-        # use intrinsic matrix of training data, since we eval on monocular data
-        k_l1 = torch.from_numpy(next(iter(self.intrinsic_dict_l.values()))).float()
-        k_r1 = torch.from_numpy(next(iter(self.intrinsic_dict_r.values()))).float()
+
+        k_l1 = torch.from_numpy(self.intrinsic_dict_l[sequence]).float()
+        k_r1 = torch.from_numpy(self.intrinsic_dict_r[sequence]).float()
 
         # input size
         h_orig, w_orig, _ = img_list_np[0].shape
@@ -143,6 +141,8 @@ class Mods_Base(data.Dataset):
 
         im_l1 = img_list_tensor[0]
         im_l2 = img_list_tensor[1]
+        im_r1 = img_list_tensor[2]
+        im_r2 = img_list_tensor[3]
 
         common_dict = {
             'sequence': sequence,
@@ -156,12 +156,32 @@ class Mods_Base(data.Dataset):
 
         # random flip
         if self._flip_augmentations is True and torch.rand(1) > 0.5:
-            raise ValueError('Flip augmentation not implemented for segmentation dataset.')
+            _, _, ww = im_l1.size()
+            im_l1_flip = torch.flip(im_l1, dims=[2])
+            im_l2_flip = torch.flip(im_l2, dims=[2])
+            im_r1_flip = torch.flip(im_r1, dims=[2])
+            im_r2_flip = torch.flip(im_r2, dims=[2])
 
+            k_l1[0, 2] = ww - k_l1[0, 2]
+            k_r1[0, 2] = ww - k_r1[0, 2]
+
+            example_dict = {
+                "input_l1": im_r1_flip,
+                "input_r1": im_l1_flip,
+                "input_l2": im_r2_flip,
+                "input_r2": im_l2_flip,
+                "input_k_l1": k_r1,
+                "input_k_r1": k_l1,
+                "input_k_l2": k_r1,
+                "input_k_r2": k_l1,
+            }
+            example_dict.update(common_dict)
         else:
             example_dict = {
                 "input_l1": im_l1,
                 "input_l2": im_l2,
+                "input_r1": im_r1,
+                "input_r2": im_r2,
                 "input_k_l1": k_l1,
                 "input_k_r1": k_r1,
                 "input_k_l2": k_l1,

@@ -4,7 +4,7 @@ import numpy as np
 from glob import glob
 import os
 import copy
-
+from collections import defaultdict
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -30,7 +30,6 @@ def extract_kitti_benchmark_scene():
             tf.write('%s\n' % item)
 
 
-
 def extract_eigen_test_scene():
     eigen_test_file = os.path.join(dir_path, 'provided/eigen_test_files.txt')
     if not os.path.exists(eigen_test_file):
@@ -52,7 +51,7 @@ def extract_eigen_test_scene():
 
 def extract_eigen_test_kitti_benchmark_scene():
 
-    ## Eigen
+    # Eigen
     eigen_test_file = os.path.join(dir_path, 'txt/eigen_test_files.txt')
     if not os.path.exists(eigen_test_file):
         raise ValueError("Eigen Test File '%s' not found!", eigen_test_file)
@@ -64,8 +63,7 @@ def extract_eigen_test_kitti_benchmark_scene():
         _, scene_name, _, _, _ = item[0].split('/')
         scene_name_set.add(scene_name)
 
-
-    ## KITTI
+    # KITTI
     kitti_test_file = os.path.join(dir_path, 'txt/train_mapping.txt')
     if not os.path.exists(kitti_test_file):
         raise ValueError("KITTI Train File '%s' not found!", kitti_test_file)
@@ -78,9 +76,7 @@ def extract_eigen_test_kitti_benchmark_scene():
         _, scene_name, _ = item
         scene_name_set.add(scene_name)
 
-
     scene_name_set = sorted(scene_name_set)
-
 
     with open(os.path.join(dir_path, 'txt/eigen_kitti_test_scenes.txt'), 'w') as tf:
         for item in scene_name_set:
@@ -90,9 +86,10 @@ def extract_eigen_test_kitti_benchmark_scene():
 class CollectDataList(object):
     def __init__(self, dataset_dir, split='eigen', sequence_length=1):
 
-        ## filename / variable definition
+        # filename / variable definition
         excluded_frames_file = dir_path + '/provided/excluded_frames.txt'
-        self.date_list = ['2011_09_26', '2011_09_28', '2011_09_29', '2011_09_30', '2011_10_03']
+        self.date_list = ['2011_09_26', '2011_09_28',
+                          '2011_09_29', '2011_09_30', '2011_10_03']
         self.sequence_length = sequence_length
         self.dataset_dir = dataset_dir
         self.excluded_frames = []
@@ -100,7 +97,7 @@ class CollectDataList(object):
         self.num_train = -1
         self.split = split
 
-        ## parsing data
+        # parsing data
         test_scene_file = dir_path + '/generated/' + self.split + '_test_scenes.txt'
         with open(test_scene_file, 'r') as f:
             test_scenes = f.readlines()
@@ -226,8 +223,6 @@ class SplitTrainVal(object):
                 vf.write('%s\n' % item)
 
 
-
-
 class SplitTrainVal_discard_last_frame(object):
     def __init__(self, dataset_dir, file_name, seq_len, alias):
 
@@ -264,7 +259,6 @@ class SplitTrainVal_discard_last_frame(object):
             if fr_alias not in all_frames:
                 self.train_set.remove(fr)
 
-
         # 4. training ref. image = Total dataset - the set above
 
         print('all frame ', len(all_frames))
@@ -276,121 +270,79 @@ class SplitTrainVal_discard_last_frame(object):
                 tf.write('%s\n' % item)
 
 
-
 class SplitTrainVal_even(object):
-    def __init__(self, dataset_dir, file_name, seq_len, alias):
-
-        # Variable definition
+    def __init__(self, dataset_dir, file_name, chunk_size, alias):
         self.dataset_dir = dataset_dir
-        self.seq_len = seq_len
+        self.chunk_size = chunk_size
         self.file_name = file_name
         self.alias = alias
-        self.train_set = set()
-        self.ref_val_set = set()
-        self.eff_ref_val_set = set()
+        self.splits = {
+            'train': 0.8,
+            'val': 0.1,
+            'test': 0.1
+        }
 
-        # build dataset
-        self.build_data()
-        self.write_dataset_file()
+        self.split_data()
+        self.write_index_files()
 
-    def build_data(self):
-
+    def split_data(self):
+        """Split data into train, validation, and test sets.
+        Makes sure that there are no overlapping frames between the splits,
+        since the model takes two consecutive frames as input.
+        We assume that the `torch.Dataset` takes the frame and the next according to index.
+        """
+        # read all frames
         with open(os.path.join(dir_path, self.file_name), 'r') as tf:
-            all_frames = tf.readlines()
+            lines = [line.rstrip().split(' ') for line in tf.readlines()]
 
-        all_frames = [ff.rstrip() for ff in all_frames]
+        sequences = defaultdict(list)
+        [sequences[line[0]].append(int(line[1])) for line in lines]
+
+        for seq in sequences.values():
+            assert self.check_consecutive(seq, step=10)
+
+        # split sequences into chunks
+        chunks = []
+        for key, seq in sequences.items():
+            chunks += list(self.chunks_without_every_nth_element(seq,
+                           self.chunk_size, key))
+
+
+        # split chunks into train, validation, and test sets
         np.random.seed(8964)
-        np.random.shuffle(all_frames)
+        np.random.shuffle(chunks)
 
-        # 1. pick ref. val. image
-        n_val_images = int(0.05 * (len(all_frames)))
-        self.ref_val_set = set(sorted(all_frames[:n_val_images]))
-        self.eff_ref_val_set = copy.deepcopy(self.ref_val_set)
+        train_size = int(self.splits['train'] * len(chunks))
+        val_size = int(self.splits['val'] * len(chunks))
 
-        # 2. create a set
-        for fr in self.ref_val_set:
-            drive, frame_id = fr.rstrip().split(' ')
-            ref_id = int(frame_id)
-
-            # if id is 1, add 0th frame as well
-            if ref_id == 1:
-                self.eff_ref_val_set.add(drive + ' ' + '%.8d' % 0)
-
-            # Add next frame as well
-            next1_fr_alias = drive + ' ' + '%.8d' % (ref_id + 1)
-            next2_fr_alias = drive + ' ' + '%.8d' % (ref_id + 2)
-            next3_fr_alias = drive + ' ' + '%.8d' % (ref_id + 3)
-            if next1_fr_alias in all_frames:
-                if next2_fr_alias not in all_frames:
-                    self.eff_ref_val_set.add(next1_fr_alias)    # when curr is 2nd last frame
-                else:
-                    if next3_fr_alias in all_frames:
-                        self.eff_ref_val_set.add(next1_fr_alias)
-                    else:
-                        continue                                # when curr is 3nd last frame
+        self.sets = {
+            'train': chunks[:train_size],
+            'val': chunks[train_size:train_size + val_size],
+            'test': chunks[train_size + val_size:]
+        }
 
 
-        # 3. filling hole
-        self.eff_ref_val_set_iter = copy.deepcopy(self.eff_ref_val_set)
-        for fr in self.eff_ref_val_set_iter:
-            drive, frame_id = fr.rstrip().split(' ')
-            ref_id = int(frame_id)
+    @staticmethod
+    def check_consecutive(l, step=1):
+        return l == list(range(l[0], l[-1] + step, step))
 
-            next1_fr_alias = drive + ' ' + '%.8d' % (ref_id + 1)
-            next2_fr_alias = drive + ' ' + '%.8d' % (ref_id + 2)
-
-            if (next1_fr_alias in all_frames) and (next2_fr_alias in all_frames):
-                if (next1_fr_alias not in self.eff_ref_val_set) and (next2_fr_alias in self.eff_ref_val_set):
-                    self.eff_ref_val_set.add(next1_fr_alias)
-
-
-        # 4. refine the train set (exclude frames that are included in the eff_ref_val_set)
-        self.eff_ref_train_set = set(all_frames) - self.eff_ref_val_set
-        self.train_set = copy.deepcopy(self.eff_ref_train_set)
-        for fr in self.eff_ref_train_set:
-            drive, frame_id = fr.rstrip().split(' ')
-            ref_id = int(frame_id)
-
-            for ii in range(ref_id, ref_id + 1 + 1):
-                fr_alias = drive + ' ' + '%.8d' % ii
-                print(f'file: {fr.rstrip()}, frame_id: {frame_id}, ref_id: {ref_id}, fr_alias: {fr_alias}')
-                if fr_alias in self.eff_ref_val_set:
-                    self.train_set.remove(fr)
-                if fr_alias not in all_frames:
-                    self.train_set.remove(fr)
+    @staticmethod
+    def chunks_without_every_nth_element(lst, n, key):
+        """
+        Yield successive n-sized chunks from lst.
+        Drop last element of each chunk to avoid overlapping frames.
+        """
+        for i in range(0, len(lst), n):
+            yield (key, lst[i:i + n - 1])
 
 
-        self.ref_val_set = copy.deepcopy(self.eff_ref_val_set)
-        for fr in self.eff_ref_val_set:
-            drive, frame_id = fr.rstrip().split(' ')
-            ref_id = int(frame_id)
-
-            for ii in range(ref_id, ref_id + 1 + 1):
-                fr_alias = drive + ' ' + '%.8d' % ii
-                print(f'file: {fr.rstrip()}, frame_id: {frame_id}, ref_id: {ref_id}, fr_alias: {fr_alias}')
-                if fr_alias in self.eff_ref_train_set:
-                    self.ref_val_set.remove(fr)
-                if fr_alias not in all_frames:
-                    self.ref_val_set.remove(fr)
-
-
-        # 4. training ref. image = Total dataset - the set above
-
-        print('all frame ', len(all_frames))
-        print('eff ref train set', len(self.eff_ref_train_set))
-        print('train set ', len(self.train_set))
-        print('eff ref val set', len(self.eff_ref_val_set))
-        print('ref val set', len(self.ref_val_set))
-
-    def write_dataset_file(self):
-        with open(os.path.join(dir_path, 'generated', self.alias + '_train.txt'), 'w+') as tf:
-            for item in sorted(self.train_set):
-                tf.write('%s\n' % item)
-
-        with open(os.path.join(dir_path, 'generated', self.alias + '_valid.txt'), 'w+') as vf:
-            for item in sorted(self.ref_val_set):
-                vf.write('%s\n' % item)
-
+    def write_index_files(self):
+        for split, frames in self.sets.items():
+            with open(os.path.join(dir_path, 'generated', self.alias + '_' + split + '.txt'), 'w+') as f:
+                for frame in frames:
+                    seq_name = frame[0]
+                    for frame_id in frame[1]:
+                        f.write('%s %s\n' % (seq_name, '%.8d' % frame_id))
 
 def main():
 
@@ -411,7 +363,11 @@ def main():
 
     # MODD2
     # CollectDataList(dataset_dir=dataset_dir, split='modd2', sequence_length=sequence_length)
-    SplitTrainVal_even(dataset_dir=dataset_dir, file_name='provided/modd2_files.txt', seq_len=sequence_length, alias='modd2')
+    # SplitTrainVal_even(dataset_dir=dataset_dir, file_name='provided/modd2_files.txt', seq_len=sequence_length, alias='modd2')
+
+    dataset_dir = 'mods/sequences/'
+    SplitTrainVal_even(dataset_dir=dataset_dir, file_name='provided/mods_files.txt',
+                       chunk_size=5, alias='mods')
 
 
 main()
