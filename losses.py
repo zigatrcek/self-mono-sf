@@ -1505,7 +1505,12 @@ class Eval_MonoDepth(nn.Module):
 
 
 class Eval_SceneFlow_MODS_Test(nn.Module):
-    """Test on MODS, uses SGM to estimate loss
+    """Test on MODS
+    Performance metrics:
+        1. Inlier ratio
+        2. RMSE
+        3. Abs Rel
+        4. Sq Rel
     """
     def __init__(self, args):
         super(Eval_SceneFlow_MODS_Test, self).__init__()

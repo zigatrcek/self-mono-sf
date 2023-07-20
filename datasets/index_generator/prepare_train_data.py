@@ -277,9 +277,9 @@ class SplitTrainVal_even(object):
         self.file_name = file_name
         self.alias = alias
         self.splits = {
-            'train': 0.8,
-            'val': 0.1,
-            'test': 0.1
+            'train': 0.5,
+            'val': 0.125,
+            'test': 0.375
         }
 
         self.split_data()
@@ -346,28 +346,12 @@ class SplitTrainVal_even(object):
 
 def main():
 
-    sequence_length = 1
-    # dataset_dir = '/fastdata/jhur/KITTI_raw_noPCL/'
+    chunk_size = 7
 
-    # ## KITTI SPLIT
-    # extract_kitti_benchmark_scene()
-    # CollectDataList(dataset_dir=dataset_dir, split='kitti', sequence_length=sequence_length)
-    # SplitTrainVal_even(dataset_dir=dataset_dir, file_name='generated/kitti_full.txt', seq_len=sequence_length, alias='kitti')
-
-    # # EIGEN SPLIT
-    # extract_eigen_test_scene()
-    # CollectDataList(dataset_dir=dataset_dir, split='eigen', sequence_length=sequence_length)
-    # SplitTrainVal_even(dataset_dir=dataset_dir, file_name='generated/eigen_full.txt', seq_len=sequence_length, alias='eigen')
-
-    dataset_dir = 'modd2/rectified_video_data/'
-
-    # MODD2
-    # CollectDataList(dataset_dir=dataset_dir, split='modd2', sequence_length=sequence_length)
-    # SplitTrainVal_even(dataset_dir=dataset_dir, file_name='provided/modd2_files.txt', seq_len=sequence_length, alias='modd2')
 
     dataset_dir = 'mods/sequences/'
     SplitTrainVal_even(dataset_dir=dataset_dir, file_name='provided/mods_files.txt',
-                       chunk_size=5, alias='mods')
+                       chunk_size=chunk_size, alias='mods')
 
 
 main()
