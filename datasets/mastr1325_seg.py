@@ -43,7 +43,8 @@ class MaSTr1325_Base(data.Dataset):
         if not os.path.isdir(images_root):
             raise ValueError(f"Image directory '{images_root}' not found!")
 
-        annotations_root = os.path.normpath(os.path.join(images_root, '../MaSTr1325_masks_512x384'))
+        # annotations_root = os.path.normpath(os.path.join(images_root, '../MaSTr1325_masks_512x384'))
+        annotations_root = os.path.normpath(os.path.join(images_root, '../masks'))
         logging.info(f'Annotations root: {annotations_root}')
 
 

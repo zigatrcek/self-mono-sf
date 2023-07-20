@@ -29,7 +29,7 @@ class Mods_Base(data.Dataset):
 
         path_dir = os.path.dirname(os.path.realpath(__file__))
         path_index_file = os.path.join(path_dir, index_file)
-        calib_dir = ('/home/bogosort/diploma/data/calibration')
+        calib_dir = ('/storage/private/student-vicos/mods/calibration')
 
         # log index file
         logging.info(f'Index file: {path_index_file}')
@@ -61,6 +61,9 @@ class Mods_Base(data.Dataset):
             name_l2 = os.path.join(images_root, scene, 'frames', idx_tgt) + 'L' + ext
             name_r1 = os.path.join(images_root, scene, 'frames', idx_src) + 'R' + ext
             name_r2 = os.path.join(images_root, scene, 'frames', idx_tgt) + 'R' + ext
+
+            # logging.info(f'name_l1: {name_l1}')
+            # logging.info(f'l1 exists: {os.path.isfile(name_l1)}')
 
 
             if all([
@@ -108,7 +111,8 @@ class Mods_Base(data.Dataset):
         im_l2_filename = self._image_list[index][1].split('/')[-1].split('.')[0]
         logging.debug(f'im_l2_filename: {im_l2_filename}')
         # name of sequence directory
-        sequence = os.path.basename(os.path.dirname(os.path.dirname(im_l1_filename)))
+        sequence = os.path.basename(os.path.dirname(os.path.dirname(im_l1_filename))).split('-')[0]
+        # logging.info(f'Sequence: {sequence}')
 
         k_l1 = torch.from_numpy(self.intrinsic_dict_l[sequence]).float()
         k_r1 = torch.from_numpy(self.intrinsic_dict_r[sequence]).float()
@@ -219,3 +223,39 @@ class Mods_Full(Mods_Base):
             crop_size=crop_size,
             num_examples=num_examples,
             index_file="index_generator/provided/mods_files.txt")
+
+
+class Mods_Train(Mods_Base):
+    def __init__(self,
+                 args,
+                 root,
+                 flip_augmentations=True,
+                 preprocessing_crop=True,
+                 crop_size=[950, 1224],
+                 num_examples=-1):
+        super(Mods_Train, self).__init__(
+            args,
+            images_root=root,
+            flip_augmentations=flip_augmentations,
+            preprocessing_crop=preprocessing_crop,
+            crop_size=crop_size,
+            num_examples=num_examples,
+            index_file="index_generator/generated/mods_train.txt")
+
+
+class Mods_Valid(Mods_Base):
+    def __init__(self,
+                 args,
+                 root,
+                 flip_augmentations=False,
+                 preprocessing_crop=False,
+                 crop_size=[950, 1224],
+                 num_examples=-1):
+        super(Mods_Valid, self).__init__(
+            args,
+            images_root=root,
+            flip_augmentations=flip_augmentations,
+            preprocessing_crop=preprocessing_crop,
+            crop_size=crop_size,
+            num_examples=num_examples,
+            index_file="index_generator/generated/mods_val.txt")

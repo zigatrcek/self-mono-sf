@@ -1,8 +1,8 @@
 colorama==0.4.3
 imageio==2.31.1
-matplotlib==3.7.2
-numpy==1.25.1
-open3d==0.17.0
+# matplotlib==3.7.2
+# numpy==1.25.1
+# open3d==0.17.0
 pypng==0.20220715.0
 pytz==2023.3
 scipy==1.11.1
@@ -10,6 +10,6 @@ segmentation_models_pytorch==0.3.3
 setuptools==45.2.0
 six==1.14.0
 skimage==0.0
-torch==2.0.1
-torchvision==0.15.2
+# torch==2.0.1
+# torchvision==0.15.2
 tqdm==4.65.0

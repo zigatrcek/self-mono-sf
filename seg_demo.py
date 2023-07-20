@@ -23,7 +23,7 @@ COLOR_DICT = np.array([Sky, Building, Pole, Unlabelled])
 
 
 VALIDATION_BATCH_SIZE = 1
-DATASET_SELECTION = 'mods'
+DATASET_SELECTION = 'mastr'
 IMG_SIZE = [960, 1280]
 
 
@@ -46,7 +46,8 @@ def main():
     elif DATASET_SELECTION == 'mastr':
         full_dataset = MaSTr1325_Full(
             args=Namespace(),
-            root='../data/mastr1325/MaSTr1325_images_512x384',
+            # root='../data/mastr1325/MaSTr1325_images_512x384',
+            root='/storage/datasets/MaSTr1325/images',
             flip_augmentations=False,
             preprocessing_crop=True,
             crop_size=[384, 512],
