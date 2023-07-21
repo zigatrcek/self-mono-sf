@@ -275,7 +275,9 @@ class EvaluationEpoch:
 
             for ii in range(0, b_size):
                 # Vis
+                logging.info(f'out_flow[iii, ...] shape: {out_flow[ii, ...].shape}')
                 flow_f_rgb = flow_to_png_middlebury(out_flow[ii, ...])
+                exit()
                 file_name_flo_vis = file_names_flow[ii] + '_flow.png'
                 io.imsave(file_name_flo_vis, flow_f_rgb)
                 # Png output

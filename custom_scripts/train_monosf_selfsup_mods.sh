@@ -2,6 +2,7 @@
 
 # experiments and datasets meta
 DATASET_HOME="/storage/private/student-vicos/mods/sequences"
+DATASET_HOME="../data/mods/sequences"
 EXPERIMENTS_HOME="experiments"
 
 # model

@@ -30,21 +30,22 @@ class Mods_Base(data.Dataset):
         path_dir = os.path.dirname(os.path.realpath(__file__))
         path_index_file = os.path.join(path_dir, index_file)
         calib_dir = ('/storage/private/student-vicos/mods/calibration')
+        calib_dir = ('../data/calibration')
 
         # log index file
         logging.info(f'Index file: {path_index_file}')
         logging.info(f'Images root: {images_root}')
 
-
         if not os.path.exists(path_index_file):
             raise ValueError("Index File '%s' not found!", path_index_file)
         index_file = open(path_index_file, 'r')
 
-        ## loading image -----------------------------------
+        # loading image -----------------------------------
         if not os.path.isdir(images_root):
             raise ValueError(f"Image directory '{images_root}' not found!")
 
-        filename_list = [line.rstrip().split(' ') for line in index_file.readlines()]
+        filename_list = [line.rstrip().split(' ')
+                         for line in index_file.readlines()]
 
         logging.info(f'Number of images: {len(filename_list)}')
         self._image_list = []
@@ -57,14 +58,17 @@ class Mods_Base(data.Dataset):
             idx_tgt = '%.8d' % (int(idx_src) + 10)
             # print(f'idx_src: {idx_src}, idx_tgt: {idx_tgt}')
             # print(os.path.join(images_root, scene, 'frames', idx_src) + 'L' + ext)
-            name_l1 = os.path.join(images_root, scene, 'frames', idx_src) + 'L' + ext
-            name_l2 = os.path.join(images_root, scene, 'frames', idx_tgt) + 'L' + ext
-            name_r1 = os.path.join(images_root, scene, 'frames', idx_src) + 'R' + ext
-            name_r2 = os.path.join(images_root, scene, 'frames', idx_tgt) + 'R' + ext
+            name_l1 = os.path.join(
+                images_root, scene, 'frames', idx_src) + 'L' + ext
+            name_l2 = os.path.join(
+                images_root, scene, 'frames', idx_tgt) + 'L' + ext
+            name_r1 = os.path.join(
+                images_root, scene, 'frames', idx_src) + 'R' + ext
+            name_r2 = os.path.join(
+                images_root, scene, 'frames', idx_tgt) + 'R' + ext
 
             # logging.info(f'name_l1: {name_l1}')
             # logging.info(f'l1 exists: {os.path.isfile(name_l1)}')
-
 
             if all([
                 os.path.isfile(name_l1),
@@ -86,10 +90,12 @@ class Mods_Base(data.Dataset):
         self._size = len(self._image_list)
         logging.info(f'Number of examples: {self._size}')
 
-        ## loading calibration matrix
+        # loading calibration matrix
         self.intrinsic_dict_l = {}
         self.intrinsic_dict_r = {}
-        self.intrinsic_dict_l, self.intrinsic_dict_r = read_mods_calib_into_dict(calib_dir)
+        self.intrinsic_dict_t = {}
+        self.intrinsic_dict_l, self.intrinsic_dict_r, self.intrinsic_dict_t = read_mods_calib_into_dict(
+            calib_dir)
 
         self._to_tensor = vision_transforms.Compose([
             vision_transforms.ToPILImage(),
@@ -103,19 +109,23 @@ class Mods_Base(data.Dataset):
 
         # read images
         # im_l1, im_l2
-        img_list_np = [read_image_as_byte(img) for img in self._image_list[index]]
+        img_list_np = [read_image_as_byte(img)
+                       for img in self._image_list[index]]
         # logging.info(f'img_list_np[0].shape: {img_list_np[0].shape}')
 
         # example filename
         im_l1_filename = self._image_list[index][0]
-        im_l2_filename = self._image_list[index][1].split('/')[-1].split('.')[0]
+        im_l2_filename = self._image_list[index][1].split(
+            '/')[-1].split('.')[0]
         logging.debug(f'im_l2_filename: {im_l2_filename}')
         # name of sequence directory
-        sequence = os.path.basename(os.path.dirname(os.path.dirname(im_l1_filename))).split('-')[0]
+        sequence = os.path.basename(os.path.dirname(
+            os.path.dirname(im_l1_filename))).split('-')[0]
         # logging.info(f'Sequence: {sequence}')
 
         k_l1 = torch.from_numpy(self.intrinsic_dict_l[sequence]).float()
         k_r1 = torch.from_numpy(self.intrinsic_dict_r[sequence]).float()
+        translation_vector = torch.from_numpy(self.intrinsic_dict_t[sequence]).float()
 
         # input size
         h_orig, w_orig, _ = img_list_np[0].shape
@@ -123,8 +133,6 @@ class Mods_Base(data.Dataset):
 
         # read annotations
         # ann_l1, ann_l2
-
-
 
         # cropping
         if self._preprocessing_crop:
@@ -134,7 +142,8 @@ class Mods_Base(data.Dataset):
             crop_width = self._crop_size[1]
             x = np.random.uniform(0, w_orig - crop_width + 1)
             y = np.random.uniform(0, h_orig - crop_height + 1)
-            crop_info = [int(x), int(y), int(x + crop_width), int(y + crop_height)]
+            crop_info = [int(x), int(y), int(
+                x + crop_width), int(y + crop_height)]
 
             # cropping images and adjust intrinsic accordingly
             img_list_np = kitti_crop_image_list(img_list_np, crop_info)
@@ -150,7 +159,7 @@ class Mods_Base(data.Dataset):
 
         common_dict = {
             'sequence': sequence,
-            'img_name': im_l2_filename, # take second image as name
+            'img_name': im_l2_filename,  # take second image as name
             "index": index,
             "basename": f'{sequence}-{index}',
             "datename": sequence,
@@ -178,6 +187,7 @@ class Mods_Base(data.Dataset):
                 "input_k_r1": k_l1,
                 "input_k_l2": k_r1,
                 "input_k_r2": k_l1,
+                "input_t": translation_vector,
             }
             example_dict.update(common_dict)
         else:
@@ -190,6 +200,7 @@ class Mods_Base(data.Dataset):
                 "input_k_r1": k_r1,
                 "input_k_l2": k_l1,
                 "input_k_r2": k_r1,
+                "input_t": translation_vector,
             }
             example_dict.update(common_dict)
         # logging.info(f'example_dict ann_l1: {example_dict["ann_l1"].shape}')
@@ -259,3 +270,21 @@ class Mods_Valid(Mods_Base):
             crop_size=crop_size,
             num_examples=num_examples,
             index_file="index_generator/generated/mods_val.txt")
+
+
+class Mods_Test(Mods_Base):
+    def __init__(self,
+                 args,
+                 root,
+                 flip_augmentations=False,
+                 preprocessing_crop=False,
+                 crop_size=[950, 1224],
+                 num_examples=-1):
+        super(Mods_Test, self).__init__(
+            args,
+            images_root=root,
+            flip_augmentations=flip_augmentations,
+            preprocessing_crop=preprocessing_crop,
+            crop_size=crop_size,
+            num_examples=num_examples,
+            index_file="index_generator/generated/mods_test.txt")

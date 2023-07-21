@@ -155,6 +155,21 @@ def _depth2disp_kitti_K(depth, k_value):
 
     return disp
 
+def _disp2depth(disp, calibration_matrix, baseline=-3.5677428730839563e+02):
+    """Convert disparity to depth map
+
+    Args:
+        disp (torch.Tensor): Disparity map
+        calibration_matrix (torch.Tensor): Stereo calibration matrix
+
+    Returns:
+        torch.Tensor: Depth map
+    """
+    mask = (disp > 0).float()
+    logging.info(f'calibration_matrix: {calibration_matrix}')
+    depth = (baseline * calibration_matrix.squeeze()[0, 0]) / (disp + (1.0 - mask))
+
+    return depth
 
 
 ###############################################
@@ -1520,7 +1535,7 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
         # logging.info("Evaluating on MODS")
         # logging.info("output_dict: {}".format(output_dict.keys()))
         # logging.info("target_dict: {}".format(target_dict.keys()))
-        vis = True
+        vis = False
 
 
         loss_dict = {}
@@ -1614,6 +1629,27 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
         # standardize both
         out_disp_l1 = (out_disp_l1 - out_disp_l1.mean()) / out_disp_l1.std()
         disp_torch = (disp_torch - disp_torch.mean()) / disp_torch.std()
+
+
+
+
+        ##################################################
+        ## Depth 1
+        ##################################################
+
+
+
+        intrinsics = target_dict['input_k_l1']
+        translation_matrix = target_dict['input_t'].flatten()
+        out_depth_mine = _disp2depth(out_disp_l1, intrinsics, translation_matrix[0])
+        # logging.info(f'out_depth_mine: {out_depth_mine.shape}')
+        out_depth_l1 = _disp2depth_kitti_K(out_disp_l1, intrinsics[:, 0, 0])
+        out_depth_l1 = torch.clamp(out_depth_l1, 1e-3, 80)
+
+        gt_depth = _disp2depth_kitti_K(disp_torch, intrinsics[:, 0, 0])
+
+        performance_metrics = eval_module_disp_depth(disp_torch, disp_mask_torch, out_disp_l1, gt_depth, out_depth_l1)
+        # logging.info(f'metrics: {performance_metrics}')
         # logging.info(f'after: model disp max: {out_disp_l1.max()}, min: {out_disp_l1.min()}, mean: {out_disp_l1.mean()}')
         # logging.info(f'after: SGM disp max: {disp_torch.max()}, min: {disp_torch.min()}, mean: {disp_torch.mean()}')
 

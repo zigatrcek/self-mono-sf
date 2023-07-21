@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # DATASETS_HOME
-KITTI_HOME="../data/modd2/rectified_video_data"
+DATASET_HOME="../data/mods/sequences"
 CHECKPOINT="experiments/noteworthy/modd2_fulldata_fullres_20_epochs/checkpoint_latest.ckpt"
 
 # model
 MODEL=MonoSceneFlow_fullmodel
 
-Valid_Dataset=MODD2_Valid_mnsf
+Valid_Dataset=Mods_Test
 Valid_Augmentation=Augmentation_Resize_Only
 Valid_Loss_Function=Eval_SceneFlow_MODS_Test
 
@@ -24,10 +24,10 @@ python ../main.py \
 --start_epoch=1 \
 --validation_augmentation=$Valid_Augmentation \
 --validation_dataset=$Valid_Dataset \
---validation_dataset_root=$KITTI_HOME \
+--validation_dataset_root=$DATASET_HOME \
 --validation_loss=$Valid_Loss_Function \
 --validation_key=otl \
 --validation_dataset_num_examples=100 \
+# --save_flow=True
 # --save_disp=True \
 # --save_disp2=True \
-# --save_flow=True

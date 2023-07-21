@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # experiments and datasets meta
-MODD2_HOME="data/modd2/rectified_video_data"
+MODD2_HOME="../data/modd2/rectified_video_data"
 EXPERIMENTS_HOME="experiments"
 
 # model
@@ -11,7 +11,7 @@ MODEL=MonoSceneFlow_fullmodel
 ALIAS="-modd2-"
 TIME=$(date +"%Y%m%d-%H%M%S")
 SAVE_PATH="$EXPERIMENTS_HOME/$MODEL$ALIAS$TIME"
-CHECKPOINT="experiments/noteworthy/modd2_fulldata_fullres_1/checkpoint_latest.ckpt"
+CHECKPOINT=None
 
 # Loss and Augmentation
 Train_Dataset=MODD2_Train_mnsf

@@ -41,3 +41,4 @@ MaSTr1325_Full = mastr1325_seg.MaSTr1325_Full
 Mods_Full = mods.Mods_Full
 Mods_Train = mods.Mods_Train
 Mods_Valid = mods.Mods_Valid
+Mods_Test = mods.Mods_Test

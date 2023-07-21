@@ -139,9 +139,9 @@ class MonoSceneFlow(nn.Module):
         ## Right
         ## ss: train val
         ## ft: train
-        logging.info(f'self.training: {self.training}')
-        logging.info(f'self._args.finetuning: {self._args.finetuning}')
-        logging.info(f'self._args.evaluation: {self._args.evaluation}')
+        # logging.info(f'self.training: {self.training}')
+        # logging.info(f'self._args.finetuning: {self._args.finetuning}')
+        # logging.info(f'self._args.evaluation: {self._args.evaluation}')
         if self.training or (not self._args.finetuning and not self._args.evaluation):
             input_r1_flip = torch.flip(input_dict['input_r1_aug'], [3])
             input_r2_flip = torch.flip(input_dict['input_r2_aug'], [3])

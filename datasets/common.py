@@ -191,7 +191,9 @@ def read_yaml_calib_file(filepath: str) -> 'tuple[np.array, np.array]':
     # fix narrow field of view after rectification
     S = rectifyimages_fix(S, fs)
     R1, R2, P1, P2, Q, roi1, roi2 = S
-    return P1, P2
+    # translation vector
+    T = np.array(fs.getNode('T').mat())
+    return P1, P2, T
 
 
 def read_calib_into_dict(path_dir):
@@ -231,7 +233,7 @@ def read_modd2_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
         if p.is_dir():
             for d in p.iterdir():
                 if d.name == 'calibration.yaml':
-                    P1, P2 = read_yaml_calib_file(str(d.absolute()))
+                    P1, P2, T = read_yaml_calib_file(str(d.absolute()))
                     logging.debug(p.name)
                     logging.debug(f'{P1}')
 
@@ -242,8 +244,9 @@ def read_modd2_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
 def read_mods_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
     intrinsic_dict_l = {}
     intrinsic_dict_r = {}
+    intrinsic_dict_t = {}
     for p in Path(path_dir).iterdir():
-        P1, P2 = read_yaml_calib_file(str(p.absolute()))
+        P1, P2, T = read_yaml_calib_file(str(p.absolute()))
         logging.debug(f'filename: {p.name}')
         sequence_name = p.name.split('-')[1].split('.')[0]
         logging.debug(f'sequence_name: {sequence_name}')
@@ -251,7 +254,8 @@ def read_mods_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
 
         intrinsic_dict_l[sequence_name] = P1[:3, :3]
         intrinsic_dict_r[sequence_name] = P2[:3, :3]
-    return intrinsic_dict_l, intrinsic_dict_r
+        intrinsic_dict_t[sequence_name] = T
+    return intrinsic_dict_l, intrinsic_dict_r, intrinsic_dict_t
 
 def read_modd2_calib_from_file(file_path: str) -> 'tuple[np.array, np.array]':
     """Reads MODD2 projection matrices from a calibration file.
@@ -262,5 +266,5 @@ def read_modd2_calib_from_file(file_path: str) -> 'tuple[np.array, np.array]':
     Returns:
         tuple: Projection matrices for left and right cameras.
     """
-    P1, P2 = read_yaml_calib_file(file_path)
-    return P1[:3, :3], P2[:3, :3]
+    P1, P2, T = read_yaml_calib_file(file_path)
+    return P1[:3, :3], P2[:3, :3], T

@@ -7,8 +7,10 @@ from torch.utils.data import DataLoader, random_split
 from argparse import Namespace
 from models import model_monosceneflow as msf, model_segmentation as mseg
 from augmentations import NoAugmentation, Augmentation_Resize_Only
+from utils.sceneflow_util import projectSceneFlow2Flow
 import segmentation_models_pytorch as smp
 import matplotlib.pyplot as plt
+from utils.interpolation import interpolate2d_as
 from collections import OrderedDict
 import numpy as np
 from utils.flow import flow_to_png_middlebury
@@ -46,8 +48,8 @@ def main():
     elif DATASET_SELECTION == 'mastr':
         full_dataset = MaSTr1325_Full(
             args=Namespace(),
-            # root='../data/mastr1325/MaSTr1325_images_512x384',
-            root='/storage/datasets/MaSTr1325/images',
+            root='../data/mastr1325/MaSTr1325_images_512x384',
+            # root='/storage/datasets/MaSTr1325/images',
             flip_augmentations=False,
             preprocessing_crop=True,
             crop_size=[384, 512],
@@ -151,8 +153,24 @@ def main():
                            0].transpose(1, 2, 0))
 
                 plt.subplot(2, 2, 2)
-                out_flow = msf_out["flow_f"][0].cpu().numpy()
-                flow_f_rgb = flow_to_png_middlebury(out_flow[0, ...])
+
+                input_l1 = augmented_sample['input_l1_aug']
+                flow_f_pp = msf_out["flow_f_pp"][0]
+                disp_l1_pp = msf_out["disp_l1_pp"][0]
+
+                print(f'msf shape: {msf_out["flow_f"][0].shape}')
+                print(f'input_l1 shape: {input_l1.shape}')
+                print(f'disp_l1 shape: {msf_out["disp_l1"][0].shape}')
+                # exit()
+
+
+                out_sceneflow = interpolate2d_as(flow_f_pp, input_l1, mode="bilinear")
+                out_disp = interpolate2d_as(disp_l1_pp, input_l1, mode="bilinear") * input_l1.size(3)
+                out_flow_pp = projectSceneFlow2Flow(intrinsic=augmented_sample['input_k_l1_aug'], sceneflow=out_sceneflow, disp=out_disp)
+                out_flow_pp = out_flow_pp.data.cpu().numpy()
+                print(f'out_flow_pp.shape: {out_flow_pp.shape}')
+                flow_f_rgb = flow_to_png_middlebury(out_flow_pp[0, ...])
+                # flow_f_rgb = flow_to_png_middlebury(out_sceneflow[0, ...].data.cpu().numpy())
                 plt.imshow(flow_f_rgb)
 
                 plt.subplot(2, 2, 3)
@@ -167,8 +185,8 @@ def main():
                 plt.show()
                 # dataset labels are 0, 1, 2, 4
                 # target = target + 1
-                loss = calculate_loss(seg_out, target)
-                print(f'loss: {loss.item()}')
+                # loss = calculate_loss(seg_out, target)
+                # print(f'loss: {loss.item()}')
 
 
 def labelVisualize(num_class, color_dict, img):
