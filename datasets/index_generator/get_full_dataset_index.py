@@ -48,6 +48,8 @@ def iter_mastr(path, index_path):
 
 if __name__ == '__main__':
     # iter_subtree('../../../data/modd2/rectified_video_data/', './provided/modd2_files.txt', dataset='modd2')
-    iter_subtree('../../../data/mods/sequences/', './provided/mods_files.txt', dataset='mods')
+    # iter_subtree('../../../data/mods/sequences/', './provided/mods_files.txt', dataset='mods')
+    iter_subtree('/storage/datasets/modb_raw/sequences', './provided/modb_raw_files.txt', dataset='mods')
+
     # iter_subtree('../../../data/LaRS_v0.9.3/', './provided/lars_files.txt', dataset='lars')
     # iter_mastr('../../../data/mastr1325/MaSTr1325_images_512x384/', './provided/mastr_files.txt')

@@ -55,7 +55,7 @@ class Mods_Base(data.Dataset):
             scene = item[0]
             # take two consecutive frames
             idx_src = item[1]
-            idx_tgt = '%.8d' % (int(idx_src) + 10)
+            idx_tgt = '%.8d' % (int(idx_src) + 1)
             # print(f'idx_src: {idx_src}, idx_tgt: {idx_tgt}')
             # print(os.path.join(images_root, scene, 'frames', idx_src) + 'L' + ext)
             name_l1 = os.path.join(
@@ -233,7 +233,7 @@ class Mods_Full(Mods_Base):
             preprocessing_crop=preprocessing_crop,
             crop_size=crop_size,
             num_examples=num_examples,
-            index_file="index_generator/provided/mods_files.txt")
+            index_file="index_generator/provided/modb_raw_files.txt")
 
 
 class Mods_Train(Mods_Base):
@@ -251,7 +251,7 @@ class Mods_Train(Mods_Base):
             preprocessing_crop=preprocessing_crop,
             crop_size=crop_size,
             num_examples=num_examples,
-            index_file="index_generator/generated/mods_train.txt")
+            index_file="index_generator/generated/modb_raw_train.txt")
 
 
 class Mods_Valid(Mods_Base):
@@ -269,7 +269,7 @@ class Mods_Valid(Mods_Base):
             preprocessing_crop=preprocessing_crop,
             crop_size=crop_size,
             num_examples=num_examples,
-            index_file="index_generator/generated/mods_val.txt")
+            index_file="index_generator/generated/modb_raw_val.txt")
 
 
 class Mods_Test(Mods_Base):
@@ -287,4 +287,4 @@ class Mods_Test(Mods_Base):
             preprocessing_crop=preprocessing_crop,
             crop_size=crop_size,
             num_examples=num_examples,
-            index_file="index_generator/generated/mods_test.txt")
+            index_file="index_generator/generated/modb_raw_test.txt")
