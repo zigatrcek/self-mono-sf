@@ -166,11 +166,19 @@ def _disp2depth(disp, calibration_matrix, baseline=-3.5677428730839563e+02):
         torch.Tensor: Depth map
     """
     mask = (disp > 0).float()
-    logging.info(f'calibration_matrix: {calibration_matrix}')
+    # logging.info(f'calibration_matrix: {calibration_matrix}')
     depth = (baseline * calibration_matrix.squeeze()[0, 0]) / (disp + (1.0 - mask))
 
     return depth
 
+def _sgbm_disp(img_l, img_r, stereo):
+    l1_np = img_l[0].cpu().numpy().transpose(1, 2, 0) * 255.0
+    r1_np = img_r[0].cpu().numpy().transpose(1, 2, 0) * 255.0
+
+    l1_np = l1_np.astype(np.uint8)
+    r1_np = r1_np.astype(np.uint8)
+
+    return stereo.compute(l1_np, r1_np).astype(np.float32) / 16.0
 
 ###############################################
 ## Loss function
@@ -1518,7 +1526,46 @@ class Eval_MonoDepth(nn.Module):
 ###############################################
 
 
+class Eval_MonoDepth_MODS(nn.Module):
+    def __init__(self):
+        window_size = 3
+        min_disp = 0
+        num_disp = 80-min_disp
+        self.stereo = cv2.StereoSGBM_create(
+            minDisparity=min_disp,
+            numDisparities=num_disp,
+            uniquenessRatio = 50,
+            disp12MaxDiff = 1,
+        )
+        super(Eval_MonoDepth_MODS, self).__init__()
 
+
+
+
+
+    def forward(self, output_dict, target_dict):
+        performance_metrics = {}
+
+        ## Depth Eval
+        l1_pp = output_dict['disp_l1_pp']
+        r1_pp = output_dict['disp_r1_pp']
+        pseudo_gt_disp = _sgbm_disp(l1_pp, r1_pp, self.stereo)
+        pseudo_gt_disp_mask = (target_dict['target_disp_mask']==1)
+        intrinsics = target_dict['input_k_l1_orig']
+
+        out_disp_l_pp = interpolate2d_as(output_dict["disp_l1_pp"][0], pseudo_gt_disp, mode="bilinear") * pseudo_gt_disp.size(3)
+        out_depth_l_pp = _disp2depth(out_disp_l_pp, intrinsics)
+        out_depth_l_pp = torch.clamp(out_depth_l_pp, 1e-3, 80)
+        gt_depth_pp = _disp2depth(pseudo_gt_disp, intrinsics)
+
+        output_dict_displ = eval_module_disp_depth(pseudo_gt_disp, pseudo_gt_disp_mask, out_disp_l_pp, gt_depth_pp, out_depth_l_pp)
+
+        output_dict["out_disp_l_pp"] = out_disp_l_pp
+        output_dict["out_depth_l_pp"] = out_depth_l_pp
+        performance_metrics["ab_r"] = output_dict_displ['abs_rel']
+        performance_metrics["sq_r"] = output_dict_displ['sq_rel']
+
+        return performance_metrics
 class Eval_SceneFlow_MODS_Test(nn.Module):
     """Test on MODS
     Performance metrics:
@@ -1530,6 +1577,16 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
     def __init__(self, args):
         super(Eval_SceneFlow_MODS_Test, self).__init__()
 
+
+    def upsample_flow_as(self, flow, output_as):
+        size_inputs = flow.size()[2:4]
+        size_targets = output_as.size()[2:4]
+        resized_flow = tf.interpolate(flow, size=size_targets, mode="bilinear", align_corners=True)
+        # correct scaling of flow
+        u, v = resized_flow.chunk(2, dim=1)
+        u *= float(size_targets[1] / size_inputs[1])
+        v *= float(size_targets[0] / size_inputs[0])
+        return torch.cat([u, v], dim=1)
 
     def forward(self, output_dict, target_dict):
         # logging.info("Evaluating on MODS")
@@ -1548,6 +1605,9 @@ class Eval_SceneFlow_MODS_Test(nn.Module):
         input_r2 = target_dict['input_r2']
         input_k_l2 = target_dict['input_k_l2']
         input_k_r2 = target_dict['input_k_r2']
+
+        out_flow = self.upsample_flow_as(output_dict['flow_f'][0], input_l1)
+        output_dict['out_flow_pp'] = out_flow
 
         # plt.imshow(input_l1[0].permute(1,2,0).cpu().numpy())
         # plt.show()

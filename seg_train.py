@@ -3,7 +3,7 @@ import os
 from datasets import MaSTr1325_Full
 from torch.utils.data import DataLoader, random_split
 from argparse import Namespace
-from models import model_monosceneflow as msf, model_segmentation as mseg
+from models import model_monosceneflow as msf, model_segmentation as mseg, model_upsample as mups
 from augmentations import NoAugmentation, Augmentation_Resize_Only
 import segmentation_models_pytorch as smp
 from collections import OrderedDict
@@ -14,6 +14,11 @@ TRAINING_BATCH_SIZE = 2
 VALIDATION_BATCH_SIZE = 1
 EPOCHS = 30
 IMG_SIZE = [960, 1280]
+IN_CHANNELS_DICT = {
+    'corr': 88,
+    'no_corr': 8,
+}
+SEG_MODEL = 'corr'
 
 torch.manual_seed(0)
 
@@ -57,7 +62,8 @@ def main():
     msf_model.cuda()
 
     # load from checkpoint
-    checkpoint_path = 'experiments/noteworthy/modd2_fulldata_fullres_1/checkpoint_latest.ckpt'
+    # checkpoint_path = 'experiments/noteworthy/modd2_fulldata_fullres_1/checkpoint_latest.ckpt'
+    checkpoint_path = '/home/bogosort/diploma/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt'
     checkpoint = torch.load(checkpoint_path)
     state_dict = checkpoint['state_dict']
     # remove '_model.' from key names
@@ -65,9 +71,16 @@ def main():
     msf_model.load_state_dict(state_dict)
     print(f'Loaded checkpoint from {checkpoint_path}')
 
-    seg_model = mseg.ModelSegmentation(args=Namespace())
+    upsample_model = mups.ModelUpsample()
+    upsample_model.train()
+    upsample_model.cuda()
+
+    seg_model = mseg.ModelSegmentation(args=Namespace(in_channels=IN_CHANNELS_DICT[SEG_MODEL]))
     seg_model.train()
     seg_model.cuda()
+
+    parameters = list(upsample_model.parameters()) + list(seg_model.parameters())
+
 
     augmentation = Augmentation_Resize_Only(args=Namespace(), photometric=False, imgsize=IMG_SIZE)
     # augmentation = NoAugmentation(args=Namespace())
@@ -79,7 +92,7 @@ def main():
     jaccard_loss_fn = smp.losses.JaccardLoss(mode='multiclass', classes=[0, 1, 2, 3])
 
     optimizer = torch.optim.AdamW([
-        dict(params=seg_model.parameters(), lr=0.0001),
+        dict(params=parameters, lr=0.0001),
     ])
 
     def calculate_loss(pred, target):
@@ -103,6 +116,7 @@ def main():
         start_time = time.time()
         training_loss = 0.0
         for batch_idx, sample in enumerate(train_loader):
+            batch_start_time = time.time()
             input_keys = list(filter(lambda x: "input" in x, sample.keys()))
             target_keys = list(filter(lambda x: "target" in x, sample.keys()))
             tensor_keys = input_keys + target_keys
@@ -117,9 +131,31 @@ def main():
                 msf_out = msf_model(augmented_sample)
 
 
-            seg_in = torch.cat((msf_out["flow_f"][0], msf_out["flow_b"]
-                            [0], msf_out["disp_l1"][0], msf_out["disp_l2"][0]), dim=1)
+            if SEG_MODEL == 'corr':
+                upsample_in = []
+                for x in msf_out["corr_f"][::-1]:
+                    upsample_in.append(x.clone())
+                    del x
+                upsampled = upsample_model(upsample_in)
+                # print(f' Len upsampled: {len(upsampled)}')
+                # for x in upsampled:
+                #     print(f'Shape upsampled: {x.shape}')
+
+                upsampled.append(msf_out["flow_f"][0])
+                upsampled.append(msf_out["flow_b"][0])
+                upsampled.append(msf_out["disp_l1"][0])
+                upsampled.append(msf_out["disp_l2"][0])
+
+                seg_in = torch.cat((
+                    upsampled
+                ), dim=1)
+                # print(f'seg_in.shape: {seg_in.shape}')
+            elif SEG_MODEL == 'no_corr':
+                seg_in = torch.cat((msf_out["flow_f"][0], msf_out["flow_b"]
+                                [0], msf_out["disp_l1"][0], msf_out["disp_l2"][0]), dim=1)
+
             seg_out = seg_model(seg_in)
+            # print(f'seg_out.shape: {seg_out.shape}')
             # optimize
             target = transform_target(sample["ann_l1"])
 
@@ -129,7 +165,10 @@ def main():
             loss.backward()
             optimizer.step()
             training_loss += loss.item()
+            batch_end_time = time.time()
+            print(f'Epoch: {e} Batch: {batch_idx} Loss: {loss.item()} Time: {batch_end_time - batch_start_time}')
         end_train_time = time.time()
+        upsample_model.eval()
         seg_model.eval()
         validation_loss = 0.0
         for batch_idx, sample in enumerate(valid_loader):
@@ -147,8 +186,28 @@ def main():
                 msf_out = msf_model(augmented_sample)
 
 
-            seg_in = torch.cat((msf_out["flow_f"][0], msf_out["flow_b"]
-                            [0], msf_out["disp_l1"][0], msf_out["disp_l2"][0]), dim=1)
+            if SEG_MODEL == 'corr':
+                upsample_in = []
+                for x in msf_out["corr_f"][::-1]:
+                    upsample_in.append(x.clone())
+                    del x
+                upsampled = upsample_model(upsample_in)
+                # print(f' Len upsampled: {len(upsampled)}')
+                # for x in upsampled:
+                #     print(f'Shape upsampled: {x.shape}')
+
+                upsampled.append(msf_out["flow_f"][0])
+                upsampled.append(msf_out["flow_b"][0])
+                upsampled.append(msf_out["disp_l1"][0])
+                upsampled.append(msf_out["disp_l2"][0])
+
+                seg_in = torch.cat((
+                    upsampled
+                ), dim=1)
+                # print(f'seg_in.shape: {seg_in.shape}')
+            elif SEG_MODEL == 'no_corr':
+                seg_in = torch.cat((msf_out["flow_f"][0], msf_out["flow_b"]
+                                [0], msf_out["disp_l1"][0], msf_out["disp_l2"][0]), dim=1)
             seg_out = seg_model(seg_in)
 
             target = transform_target(sample["ann_l1"])
@@ -162,6 +221,7 @@ def main():
             print(f'Saving model with validation loss {min_valid_loss}')
             torch.save(seg_model.state_dict(), 'seg_model.pt')
         print(f'Epoch: {e} Training Loss: {training_loss / len(train_loader)} Validation Loss: {validation_loss / len(valid_loader)} Time: {end_valid_time - start_time} Train Time: {end_train_time - start_time} Valid Time: {end_valid_time - end_train_time}')
+        upsample_model.train()
         seg_model.train()
 
 

@@ -28,6 +28,6 @@ python ../main.py \
 --validation_loss=$Valid_Loss_Function \
 --validation_key=otl \
 --validation_dataset_num_examples=100 \
-# --save_flow=True
+--save_flow=True
 # --save_disp=True \
 # --save_disp2=True \

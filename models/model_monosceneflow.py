@@ -8,7 +8,7 @@ import logging
 from .correlation_package.correlation import Correlation
 
 from .modules_sceneflow import get_grid, WarpingLayer_SF
-from .modules_sceneflow import initialize_msra, upsample_outputs_as
+from .modules_sceneflow import initialize_msra, upsample_outputs_as, upsample_outputs_as_level
 from .modules_sceneflow import upconv
 from .modules_sceneflow import FeatureExtractor, MonoSceneFlowDecoder, ContextNetwork
 
@@ -35,6 +35,7 @@ class MonoSceneFlow(nn.Module):
         self.upconv_layers = nn.ModuleList()
 
         self.dim_corr = (self.search_range * 2 + 1) ** 2
+        # print(f'dim_corr: {self.dim_corr}')
 
         for l, ch in enumerate(self.num_chs[::-1]):
             if l > self.output_level:
@@ -45,6 +46,8 @@ class MonoSceneFlow(nn.Module):
             else:
                 num_ch_in = self.dim_corr + ch + 32 + 3 + 1
                 self.upconv_layers.append(upconv(32, 32, 3, 2))
+
+            # print(f'num_ch_in: {num_ch_in}')
 
             layer_sf = MonoSceneFlowDecoder(num_ch_in)
             self.flow_estimators.append(layer_sf)
@@ -68,6 +71,7 @@ class MonoSceneFlow(nn.Module):
         sceneflows_b = []
         disps_1 = []
         disps_2 = []
+        corr_f = []
 
         for l, (x1, x2) in enumerate(zip(x1_pyramid, x2_pyramid)):
 
@@ -86,10 +90,14 @@ class MonoSceneFlow(nn.Module):
                 x1_warp = self.warping_layer_sf(x1, flow_b, disp_l2, k2, input_dict['aug_size'])
 
             # correlation
+            # print(f'x1.shape: {x1.shape}')
             out_corr_f = Correlation.apply(x1, x2_warp, self.corr_params)
             out_corr_b = Correlation.apply(x2, x1_warp, self.corr_params)
+            # print(f'out_corr_f.shape: {out_corr_f.shape}')
             out_corr_relu_f = self.leakyRELU(out_corr_f)
             out_corr_relu_b = self.leakyRELU(out_corr_b)
+            corr_f.append(out_corr_relu_f)
+
 
             # monosf estimator
             if l == 0:
@@ -121,11 +129,13 @@ class MonoSceneFlow(nn.Module):
                 break
 
         x1_rev = x1_pyramid[::-1]
+        # print(f'shape of x1_rev: {x1_rev[0].shape}')
 
         output_dict['flow_f'] = upsample_outputs_as(sceneflows_f[::-1], x1_rev)
         output_dict['flow_b'] = upsample_outputs_as(sceneflows_b[::-1], x1_rev)
         output_dict['disp_l1'] = upsample_outputs_as(disps_1[::-1], x1_rev)
         output_dict['disp_l2'] = upsample_outputs_as(disps_2[::-1], x1_rev)
+        output_dict['corr_f'] = corr_f[::-1]
 
         return output_dict
 

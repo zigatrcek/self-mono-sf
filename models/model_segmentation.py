@@ -30,15 +30,19 @@ class ModelSegmentation(nn.Module):
     The output from monosceneflow is used as input for the segmentation model,
     which classifies each pixel into one of three classes.
     """
-    def __init__(self, args):
+    def __init__(self, args: Namespace):
         super(ModelSegmentation, self).__init__()
+
+
+
+
         # create segmentation model
         self.segmentation_model = smp.Unet(
             encoder_name="resnet34",        # choose encoder, e.g. mobilenet_v2 or efficientnet-b7
             # use `imagenet` pre-trained weights for encoder initialization
             encoder_weights="imagenet",
             # model input channels (1 for gray-scale images, 3 for RGB, etc.)
-            in_channels=8,
+            in_channels=args.in_channels,
             # model output channels (number of classes in your dataset)
             classes=4,
         )

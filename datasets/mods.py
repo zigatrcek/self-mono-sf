@@ -26,11 +26,14 @@ class Mods_Base(data.Dataset):
         self._flip_augmentations = flip_augmentations
         self._preprocessing_crop = preprocessing_crop
         self._crop_size = crop_size
+        self.seg = True
 
         path_dir = os.path.dirname(os.path.realpath(__file__))
         path_index_file = os.path.join(path_dir, index_file)
         calib_dir = ('/storage/private/student-vicos/mods/calibration')
         calib_dir = ('../data/calibration')
+        seg_dir = ('/home/bogosort/diploma/data/mods_wasr')
+
 
         # log index file
         logging.info(f'Index file: {path_index_file}')
@@ -43,6 +46,9 @@ class Mods_Base(data.Dataset):
         # loading image -----------------------------------
         if not os.path.isdir(images_root):
             raise ValueError(f"Image directory '{images_root}' not found!")
+
+        if self.seg and not os.path.isdir(seg_dir):
+            raise ValueError(f"Segmentation directory '{seg_dir}' not found!")
 
         filename_list = [line.rstrip().split(' ')
                          for line in index_file.readlines()]
@@ -67,10 +73,17 @@ class Mods_Base(data.Dataset):
             name_r2 = os.path.join(
                 images_root, scene, 'frames', idx_tgt) + 'R' + ext
 
+            if self.seg:
+                ext = '.png'
+                seg_l1 = os.path.join(
+                    seg_dir, scene, idx_src) + 'L' + ext
+                seg_l2 = os.path.join(
+                    seg_dir, scene, idx_tgt) + 'L' + ext
+
             # logging.info(f'name_l1: {name_l1}')
             # logging.info(f'l1 exists: {os.path.isfile(name_l1)}')
 
-            if all([
+            if not self.seg and all([
                 os.path.isfile(name_l1),
                 os.path.isfile(name_l2),
                 os.path.isfile(name_r1),
@@ -83,6 +96,23 @@ class Mods_Base(data.Dataset):
                     name_r1,
                     name_r2,
                 ])
+            elif self.seg and all([
+                os.path.isfile(name_l1),
+                os.path.isfile(name_l2),
+                os.path.isfile(name_r1),
+                os.path.isfile(name_r2),
+                os.path.isfile(seg_l1),
+                os.path.isfile(seg_l2),
+            ]):
+                self._image_list.append([
+                    name_l1,
+                    name_l2,
+                    name_r1,
+                    name_r2,
+                    seg_l1,
+                    seg_l2,
+                ])
+
 
         if num_examples > 0:
             self._image_list = self._image_list[:num_examples]
@@ -202,6 +232,10 @@ class Mods_Base(data.Dataset):
                 "input_k_r2": k_r1,
                 "input_t": translation_vector,
             }
+            if self.seg:
+                example_dict["seg_l1"] = img_list_tensor[4]
+                example_dict["seg_l2"] = img_list_tensor[5]
+
             example_dict.update(common_dict)
         # logging.info(f'example_dict ann_l1: {example_dict["ann_l1"].shape}')
         # logging.info(f'example_dict ann_l2: {example_dict["ann_l2"].shape}')

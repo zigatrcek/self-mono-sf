@@ -3,6 +3,7 @@ import torch
 import os
 from core import commandline, runtime, logger, tools, configuration as config
 from datasets import MaSTr1325_Full, Mods_Full
+import torch.nn.functional as tf
 from torch.utils.data import DataLoader, random_split
 from argparse import Namespace
 from models import model_monosceneflow as msf, model_segmentation as mseg
@@ -25,7 +26,7 @@ COLOR_DICT = np.array([Sky, Building, Pole, Unlabelled])
 
 
 VALIDATION_BATCH_SIZE = 1
-DATASET_SELECTION = 'mastr'
+DATASET_SELECTION = 'mods'
 IMG_SIZE = [960, 1280]
 
 
@@ -105,6 +106,16 @@ def main():
         jaccard_loss = jaccard_loss_fn(pred, target)
         return 0.5 * focal_loss + 0.5 * jaccard_loss
 
+    def upsample_flow_as(flow, output_as):
+        size_inputs = flow.size()[2:4]
+        size_targets = output_as.size()[2:4]
+        resized_flow = tf.interpolate(flow, size=size_targets, mode="bilinear", align_corners=True)
+        # correct scaling of flow
+        u, v = resized_flow.chunk(2, dim=1)
+        u *= float(size_targets[1] / size_inputs[1])
+        v *= float(size_targets[0] / size_inputs[0])
+        return torch.cat([u, v], dim=1)
+
     seg_model.eval()
     with torch.inference_mode():
         for batch_idx, sample in enumerate(inf_loader):
@@ -158,17 +169,15 @@ def main():
                 flow_f_pp = msf_out["flow_f_pp"][0]
                 disp_l1_pp = msf_out["disp_l1_pp"][0]
 
-                print(f'msf shape: {msf_out["flow_f"][0].shape}')
+                print(f'msf shape: {flow_f_pp.shape}')
                 print(f'input_l1 shape: {input_l1.shape}')
-                print(f'disp_l1 shape: {msf_out["disp_l1"][0].shape}')
+                print(f'disp_l1 shape: {disp_l1_pp.shape}')
                 # exit()
 
-
-                out_sceneflow = interpolate2d_as(flow_f_pp, input_l1, mode="bilinear")
+                out_sceneflow = upsample_flow_as(flow_f_pp, input_l1)
                 out_disp = interpolate2d_as(disp_l1_pp, input_l1, mode="bilinear") * input_l1.size(3)
                 out_flow_pp = projectSceneFlow2Flow(intrinsic=augmented_sample['input_k_l1_aug'], sceneflow=out_sceneflow, disp=out_disp)
                 out_flow_pp = out_flow_pp.data.cpu().numpy()
-                print(f'out_flow_pp.shape: {out_flow_pp.shape}')
                 flow_f_rgb = flow_to_png_middlebury(out_flow_pp[0, ...])
                 # flow_f_rgb = flow_to_png_middlebury(out_sceneflow[0, ...].data.cpu().numpy())
                 plt.imshow(flow_f_rgb)

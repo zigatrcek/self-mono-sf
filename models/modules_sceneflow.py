@@ -90,6 +90,13 @@ def upsample_outputs_as(input_list, ref_list):
 
     return output_list
 
+def upsample_outputs_as_level(input_list, ref_list):
+    output_list = []
+    for ii in range(0, len(input_list)):
+        output_list.append(interpolate2d_as(input_list[ii], ref_list))
+
+    return output_list
+
 
 def conv(in_planes, out_planes, kernel_size=3, stride=1, dilation=1, isReLU=True):
     if isReLU:
