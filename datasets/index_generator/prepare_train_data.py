@@ -299,7 +299,7 @@ class SplitTrainVal_even(object):
         [sequences[line[0]].append(int(line[1])) for line in lines]
 
         for seq in sequences.values():
-            assert self.check_consecutive(seq, step=10)
+            assert self.check_consecutive(seq, step=1)
 
         # split sequences into chunks
         chunks = []
@@ -337,21 +337,21 @@ class SplitTrainVal_even(object):
 
 
     def write_index_files(self):
-        for split, frames in self.sets.items():
+        for split, frames in sorted(self.sets.items(), key=lambda x: x[0]):
             with open(os.path.join(dir_path, 'generated', self.alias + '_' + split + '.txt'), 'w+') as f:
-                for frame in frames:
+                for frame in sorted(frames, key=lambda x: x[0]):
                     seq_name = frame[0]
                     for frame_id in frame[1]:
                         f.write('%s %s\n' % (seq_name, '%.8d' % frame_id))
 
 def main():
 
-    chunk_size = 7
+    chunk_size = 10
 
 
     dataset_dir = 'mods/sequences/'
-    SplitTrainVal_even(dataset_dir=dataset_dir, file_name='provided/mods_files.txt',
-                       chunk_size=chunk_size, alias='mods')
+    SplitTrainVal_even(dataset_dir=dataset_dir, file_name='provided/modb_raw_files.txt',
+                       chunk_size=chunk_size, alias='modb_raw')
 
 
 main()
