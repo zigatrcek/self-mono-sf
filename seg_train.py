@@ -30,7 +30,7 @@ def main():
     gpuargs = {"num_workers": 12, "pin_memory": True}
     full_dataset = MaSTr1325_Full(
         args=Namespace(),
-        root='../data/mastr1325/MaSTr1325_images_512x384',
+        root='/storage/private/student-vicos/MaSTr1325/MaSTr1325_images_512x384',
         flip_augmentations=False,
         preprocessing_crop=True,
         crop_size=[384, 512],
@@ -62,8 +62,8 @@ def main():
     msf_model.cuda()
 
     # load from checkpoint
-    # checkpoint_path = 'experiments/noteworthy/modd2_fulldata_fullres_1/checkpoint_latest.ckpt'
-    checkpoint_path = '/home/bogosort/diploma/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt'
+    # checkpoint_path = '/home/bogosort/diploma/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt'
+    checkpoint_path = '/home/ziga/self-mono-sf/experiments/MonoSceneFlow_fullmodel-mods-20230726-143301/checkpoint_latest.ckpt'
     checkpoint = torch.load(checkpoint_path)
     state_dict = checkpoint['state_dict']
     # remove '_model.' from key names
@@ -166,7 +166,7 @@ def main():
             optimizer.step()
             training_loss += loss.item()
             batch_end_time = time.time()
-            print(f'Epoch: {e} Batch: {batch_idx} Loss: {loss.item()} Time: {batch_end_time - batch_start_time}')
+            # print(f'Epoch: {e} Batch: {batch_idx} Loss: {loss.item()} Time: {batch_end_time - batch_start_time}')
         end_train_time = time.time()
         upsample_model.eval()
         seg_model.eval()

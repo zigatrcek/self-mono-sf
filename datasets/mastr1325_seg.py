@@ -6,7 +6,7 @@ import torch.utils.data as data
 import numpy as np
 
 from torchvision import transforms as vision_transforms
-from .common import read_image_as_byte, read_modd2_calib_into_dict, read_annotation
+from .common import read_image_as_byte, read_modd2_calib_into_dict, read_annotation, read_mods_calib_into_dict
 from .common import kitti_crop_image_list, kitti_adjust_intrinsic
 import logging
 
@@ -120,7 +120,7 @@ class MaSTr1325_Base(data.Dataset):
         ## loading calibration matrix
         self.intrinsic_dict_l = {}
         self.intrinsic_dict_r = {}
-        self.intrinsic_dict_l, self.intrinsic_dict_r = read_modd2_calib_into_dict(path_dir)
+        self.intrinsic_dict_l, self.intrinsic_dict_r, _ = read_mods_calib_into_dict('/storage/private/student-vicos/mods/calibration')
 
         self._to_tensor = vision_transforms.Compose([
             vision_transforms.ToPILImage(),

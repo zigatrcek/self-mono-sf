@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # experiments and datasets meta
-DATASET_HOME="/storage/private/student-vicos/mods/sequences"
 DATASET_HOME="../data/mods/sequences"
+DATASET_HOME="/storage/datasets/modb_raw/sequences"
 EXPERIMENTS_HOME="experiments"
 
 # model
@@ -12,7 +12,7 @@ MODEL=MonoSceneFlow_fullmodel
 ALIAS="-mods-"
 TIME=$(date +"%Y%m%d-%H%M%S")
 SAVE_PATH="$EXPERIMENTS_HOME/$MODEL$ALIAS$TIME"
-CHECKPOINT=None
+CHECKPOINT="/home/ziga/self-mono-sf/checkpoints/mid_checkpoint_model_mods/checkpoint_latest.ckpt"
 
 # Loss and Augmentation
 Train_Dataset=Mods_Train
@@ -26,13 +26,13 @@ Valid_Loss_Function=Loss_SceneFlow_SelfSup
 # training configuration
 python ../main.py \
 --batch_size=8 \
---batch_size_val=1 \
+--batch_size_val=4 \
 --checkpoint=$CHECKPOINT \
 --lr_scheduler=MultiStepLR \
 --lr_scheduler_gamma=0.5 \
 --lr_scheduler_milestones="[23, 39, 47, 54]" \
 --model=$MODEL \
---num_workers=4 \
+--num_workers=8 \
 --optimizer=Adam \
 --optimizer_lr=2e-4 \
 --save=$SAVE_PATH \
