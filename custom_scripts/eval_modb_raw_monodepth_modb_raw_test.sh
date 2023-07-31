@@ -2,7 +2,8 @@
 
 # DATASETS_HOME
 DATASET_HOME="/storage/datasets/modb_raw/sequences"
-CHECKPOINT="/home/ziga/self-mono-sf/checkpoints/full_model_modb_raw/checkpoint_latest.ckpt"
+CHECKPOINT="/home/ziga/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt"
+# CHECKPOINT="/home/ziga/self-mono-sf/checkpoints/modd2_fulldata_fullres_20_epochs/checkpoint_best.ckpt"
 
 # model
 MODEL=MonoSceneFlow_fullmodel
