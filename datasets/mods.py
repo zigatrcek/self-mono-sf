@@ -55,9 +55,10 @@ class Mods_Base(data.Dataset):
 
         logging.info(f'Number of images: {len(filename_list)}')
         self._image_list = []
-        ext = '.jpg'
+        self._ignore_masks = []
 
         for item in filename_list:
+            ext = '.jpg'
             scene = item[0]
             # take two consecutive frames
             idx_src = item[1]
@@ -72,16 +73,14 @@ class Mods_Base(data.Dataset):
                 images_root, scene, 'frames', idx_src) + 'R' + ext
             name_r2 = os.path.join(
                 images_root, scene, 'frames', idx_tgt) + 'R' + ext
+            name_ignore_mask = os.path.join(
+                images_root, scene, 'ignore_mask.png')
+
 
             if self.seg:
                 ext = '.png'
                 seg_l1 = os.path.join(
                     seg_dir, scene, idx_src) + 'L' + ext
-                seg_l2 = os.path.join(
-                    seg_dir, scene, idx_tgt) + 'L' + ext
-
-            # logging.info(f'name_l1: {name_l1}')
-            # logging.info(f'l1 exists: {os.path.isfile(name_l1)}')
 
             if not self.seg and all([
                 os.path.isfile(name_l1),
@@ -102,7 +101,6 @@ class Mods_Base(data.Dataset):
                 os.path.isfile(name_r1),
                 os.path.isfile(name_r2),
                 os.path.isfile(seg_l1),
-                os.path.isfile(seg_l2),
             ]):
                 self._image_list.append([
                     name_l1,
@@ -110,9 +108,11 @@ class Mods_Base(data.Dataset):
                     name_r1,
                     name_r2,
                     seg_l1,
-                    seg_l2,
                 ])
-
+            if os.path.isfile(name_ignore_mask):
+                self._ignore_masks.append(name_ignore_mask)
+            else:
+                self._ignore_masks.append(None)
 
         if num_examples > 0:
             self._image_list = self._image_list[:num_examples]
@@ -142,6 +142,21 @@ class Mods_Base(data.Dataset):
         img_list_np = [read_image_as_byte(img)
                        for img in self._image_list[index]]
         # logging.info(f'img_list_np[0].shape: {img_list_np[0].shape}')
+        if self._ignore_masks[index] is not None:
+            ignore_mask = read_image_as_byte(self._ignore_masks[index])
+            if self.seg:
+                seg_l1 = img_list_np[4]
+            masked = []
+            for img in img_list_np[:4]:
+                img_masked = img * np.logical_not(ignore_mask)
+                masked.append(img_masked)
+
+            img_list_np = masked
+            img_list_np.append(ignore_mask)
+            if self.seg:
+                img_list_np.append(seg_l1)
+
+
 
         # example filename
         im_l1_filename = self._image_list[index][0]
@@ -234,7 +249,6 @@ class Mods_Base(data.Dataset):
             }
             if self.seg:
                 example_dict["seg_l1"] = img_list_tensor[4]
-                example_dict["seg_l2"] = img_list_tensor[5]
 
             example_dict.update(common_dict)
         # logging.info(f'example_dict ann_l1: {example_dict["ann_l1"].shape}')

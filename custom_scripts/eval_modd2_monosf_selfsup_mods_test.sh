@@ -2,14 +2,16 @@
 
 # DATASETS_HOME
 DATASET_HOME="../data/mods/sequences"
-CHECKPOINT="experiments/noteworthy/modd2_fulldata_fullres_20_epochs/checkpoint_latest.ckpt"
+# CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modd2_fulldata_fullres_20_epochs/checkpoint_best.ckpt"
+# CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/mid_mods/checkpoint_best.ckpt"
+CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt"
 
 # model
 MODEL=MonoSceneFlow_fullmodel
 
 Valid_Dataset=Mods_Test
 Valid_Augmentation=Augmentation_Resize_Only
-Valid_Loss_Function=Eval_SceneFlow_MODS_Test
+Valid_Loss_Function=Eval_MonoDepth_MODS
 
 # training configuration
 SAVE_PATH="eval/monosf_modd2_selfsup_modd2_test"
@@ -28,6 +30,6 @@ python ../main.py \
 --validation_loss=$Valid_Loss_Function \
 --validation_key=otl \
 --validation_dataset_num_examples=100 \
---save_flow=True
+# --save_flow=True
 # --save_disp=True \
 # --save_disp2=True \

@@ -178,7 +178,7 @@ def _sgbm_disp(img_l, img_r, stereo):
     l1_np = l1_np.astype(np.uint8)
     r1_np = r1_np.astype(np.uint8)
 
-    return stereo.compute(l1_np, r1_np).astype(np.float32) / 16.0
+    return torch.tensor(stereo.compute(l1_np, r1_np).astype(np.float32) / 16.0).cuda().unsqueeze(0).unsqueeze(0)
 
 ###############################################
 ## Loss function
@@ -1534,8 +1534,14 @@ class Eval_MonoDepth_MODS(nn.Module):
         self.stereo = cv2.StereoSGBM_create(
             minDisparity=min_disp,
             numDisparities=num_disp,
-            uniquenessRatio = 50,
-            disp12MaxDiff = 1,
+            blockSize=window_size,
+            P1=8 * 3 * window_size**2,
+            P2=32 * 3 * window_size**2,
+            disp12MaxDiff = 0,
+            preFilterCap=0,
+            uniquenessRatio = 15,
+            speckleWindowSize=0,
+            speckleRange=0
         )
         super(Eval_MonoDepth_MODS, self).__init__()
 
@@ -1546,14 +1552,48 @@ class Eval_MonoDepth_MODS(nn.Module):
     def forward(self, output_dict, target_dict):
         performance_metrics = {}
 
+        plt.subplot(2, 3, 1)
+        plt.title('left')
+        plt.imshow(target_dict['input_l1'][0].permute(1,2,0).cpu().numpy())
+        plt.subplot(2, 3, 2)
+        plt.title('sgbm')
+        seg_l1 = target_dict['seg_l1']
+        seg_sky_mask = seg_l1[:, 1, :, :].unsqueeze(0)
+        seg_sky_mask = interpolate2d_as(seg_sky_mask, target_dict['input_l1'], mode="bilinear")
+        seg_no_sky_mask = (seg_sky_mask==0).cuda()
+
         ## Depth Eval
-        l1_pp = output_dict['disp_l1_pp']
-        r1_pp = output_dict['disp_r1_pp']
+        # logging.info(f'output_dict: {output_dict.keys()}')
+        # logging.info(f'target_dict: {target_dict.keys()}')
+        l1_pp = target_dict['input_l1']
+        r1_pp = target_dict['input_r1']
         pseudo_gt_disp = _sgbm_disp(l1_pp, r1_pp, self.stereo)
-        pseudo_gt_disp_mask = (target_dict['target_disp_mask']==1)
-        intrinsics = target_dict['input_k_l1_orig']
+        pseudo_gt_disp = interpolate2d_as(pseudo_gt_disp, l1_pp, mode="bilinear") * l1_pp.size(3)
+
+        pseudo_gt_disp_mask = (pseudo_gt_disp > 0)
+        full_mask = pseudo_gt_disp_mask.logical_and(seg_no_sky_mask)
+        full_mask = full_mask.int().float()
+        pseudo_gt_disp = pseudo_gt_disp * full_mask
+        plt.imshow(pseudo_gt_disp[0, 0].cpu().numpy())
+
+        intrinsics = target_dict['input_k_l1_flip_aug']
+        # plt.imshow(pseudo_gt_disp[0, 0].cpu().numpy())
+
+        plt.subplot(2, 3, 3)
+        plt.title('pred')
 
         out_disp_l_pp = interpolate2d_as(output_dict["disp_l1_pp"][0], pseudo_gt_disp, mode="bilinear") * pseudo_gt_disp.size(3)
+        out_disp_l_pp_masked = out_disp_l_pp * full_mask
+        plt.imshow(out_disp_l_pp_masked[0, 0].cpu().numpy())
+
+        plt.subplot(2, 3, 4)
+        plt.title('pred unmasked')
+        plt.imshow(out_disp_l_pp[0, 0].cpu().numpy())
+        plt.subplot(2, 3, 5)
+        plt.title('pred unmasked uninterpolated')
+        plt.imshow(output_dict["disp_l1_pp"][0][0, 0].cpu().numpy())
+        plt.show()
+
         out_depth_l_pp = _disp2depth(out_disp_l_pp, intrinsics)
         out_depth_l_pp = torch.clamp(out_depth_l_pp, 1e-3, 80)
         gt_depth_pp = _disp2depth(pseudo_gt_disp, intrinsics)
