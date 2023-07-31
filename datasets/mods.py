@@ -31,7 +31,8 @@ class Mods_Base(data.Dataset):
         path_dir = os.path.dirname(os.path.realpath(__file__))
         path_index_file = os.path.join(path_dir, index_file)
         calib_dir = ('../data/calibration')
-        seg_dir = ('/home/bogosort/diploma/data/mods_wasr')
+        # seg_dir = ('/home/bogosort/diploma/data/mods_wasr')
+        seg_dir = ('/storage/private/student-vicos/mods_wasr')
 
         calib_dir = ('/storage/private/student-vicos/mods/calibration')
 
