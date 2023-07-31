@@ -1553,10 +1553,13 @@ class Eval_MonoDepth_MODS(nn.Module):
         performance_metrics = {}
 
         plt.subplot(2, 3, 1)
-        plt.title('left')
+        plt.title('left 1')
         plt.imshow(target_dict['input_l1'][0].permute(1,2,0).cpu().numpy())
         plt.subplot(2, 3, 2)
-        plt.title('sgbm')
+        plt.title('left 2')
+        plt.imshow(target_dict['input_l2'][0].permute(1,2,0).cpu().numpy())
+        plt.subplot(2, 3, 3)
+        plt.title('sgbm pred')
         seg_l1 = target_dict['seg_l1']
         seg_sky_mask = seg_l1[:, 1, :, :].unsqueeze(0)
         seg_sky_mask = interpolate2d_as(seg_sky_mask, target_dict['input_l1'], mode="bilinear")
@@ -1579,19 +1582,16 @@ class Eval_MonoDepth_MODS(nn.Module):
         intrinsics = target_dict['input_k_l1_flip_aug']
         # plt.imshow(pseudo_gt_disp[0, 0].cpu().numpy())
 
-        plt.subplot(2, 3, 3)
-        plt.title('pred')
+        plt.subplot(2, 3, 4)
+        plt.title('self-mono-sf pred')
 
         out_disp_l_pp = interpolate2d_as(output_dict["disp_l1_pp"][0], pseudo_gt_disp, mode="bilinear") * pseudo_gt_disp.size(3)
         out_disp_l_pp_masked = out_disp_l_pp * full_mask
         plt.imshow(out_disp_l_pp_masked[0, 0].cpu().numpy())
 
-        plt.subplot(2, 3, 4)
+        plt.subplot(2, 3, 5)
         plt.title('pred unmasked')
         plt.imshow(out_disp_l_pp[0, 0].cpu().numpy())
-        plt.subplot(2, 3, 5)
-        plt.title('pred unmasked uninterpolated')
-        plt.imshow(output_dict["disp_l1_pp"][0][0, 0].cpu().numpy())
         plt.show()
 
         out_depth_l_pp = _disp2depth(out_disp_l_pp, intrinsics)

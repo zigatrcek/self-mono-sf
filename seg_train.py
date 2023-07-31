@@ -13,7 +13,7 @@ from torch.nn import Upsample as upsample
 TRAINING_BATCH_SIZE = 2
 VALIDATION_BATCH_SIZE = 1
 EPOCHS = 30
-IMG_SIZE = [960, 1280]
+IMG_SIZE = [256, 832]
 IN_CHANNELS_DICT = {
     'corr': 88,
     'no_corr': 8,
@@ -110,6 +110,7 @@ def main():
         # dataset labels are 0, 1, 2, 4
         target[target == 4] = 3
         return target
+
 
 
     for e in range(EPOCHS):
@@ -219,7 +220,7 @@ def main():
         if validation_loss < min_valid_loss:
             min_valid_loss = validation_loss
             print(f'Saving model with validation loss {min_valid_loss}')
-            torch.save(seg_model.state_dict(), 'seg_model.pt')
+            torch.save(seg_model.state_dict(), f'{SEG_MODEL}_seg_model.pt')
         print(f'Epoch: {e} Training Loss: {training_loss / len(train_loader)} Validation Loss: {validation_loss / len(valid_loader)} Time: {end_valid_time - start_time} Train Time: {end_train_time - start_time} Valid Time: {end_valid_time - end_train_time}')
         upsample_model.train()
         seg_model.train()
