@@ -4,7 +4,7 @@
 DATASET_HOME="../data/mods/sequences"
 # CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modd2_fulldata_fullres_20_epochs/checkpoint_best.ckpt"
 # CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/mid_mods/checkpoint_best.ckpt"
-CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt"
+# CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt"
 
 # model
 MODEL=MonoSceneFlow_fullmodel
