@@ -21,28 +21,41 @@ class ModelUpsample(nn.Module):
     Upsample the layers of the FPN to the original image size.
 
     """
-    def __init__(self, num_layers=5):
+    def __init__(self, num_layers=5, reduce_dim=True):
         super(ModelUpsample, self).__init__()
         self.num_layers = num_layers
         self.upconv_layers = nn.ModuleList()
+        self.reduce_dim = reduce_dim
 
-        self.ch_reduce = nn.Sequential(
-            nn.Conv2d(81, 16, 1, 1, 0),
-            nn.LeakyReLU(0.1, inplace=True),
-        )
+        if not self.reduce_dim:
+            self.upconv_layers = nn.ModuleList((
+                upconv(256, 192, 3, 2),
+                upconv(192, 128, 3, 2),
+                upconv(128, 96, 3, 2),
+                upconv(96, 64, 3, 2),
+                upconv(64, 32, 3, 2),
+                upconv(32, 16, 3, 2),
+            ))
+
+        else:
+            self.ch_reduce = nn.Sequential(
+                nn.Conv2d(81, 16, 1, 1, 0),
+                nn.LeakyReLU(0.1, inplace=True),
+            )
 
 
-        for l in range(self.num_layers):
-            if l == self.num_layers - 1:
-                self.upconv_layers.append(upconv(16, 16, 3, 4))
-            else:
-                self.upconv_layers.append(upconv(16, 16, 3, 2))
-        # print(f'Created upconv_layers: {self.upconv_layers}')
+            for l in range(self.num_layers):
+                if l == self.num_layers - 1:
+                    self.upconv_layers.append(upconv(16, 16, 3, 4))
+                else:
+                    self.upconv_layers.append(upconv(16, 16, 3, 2))
+            # print(f'Created upconv_layers: {self.upconv_layers}')
 
     def forward(self, inputs):
         outputs = []
-        for i, l in enumerate(inputs):
-            data = self.ch_reduce(l)
+        for i, data in enumerate(inputs):
+            if self.reduce_dim:
+                data = self.ch_reduce(data)
             for j in range(i, self.num_layers):
                 data = self.upconv_layers[j](data)
             outputs.append(data)

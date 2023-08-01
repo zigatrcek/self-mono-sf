@@ -131,6 +131,8 @@ class MonoSceneFlow(nn.Module):
         x1_rev = x1_pyramid[::-1]
         # print(f'shape of x1_rev: {x1_rev[0].shape}')
 
+
+        output_dict['x1_pyramid'] = x1_pyramid
         output_dict['flow_f'] = upsample_outputs_as(sceneflows_f[::-1], x1_rev)
         output_dict['flow_b'] = upsample_outputs_as(sceneflows_b[::-1], x1_rev)
         output_dict['disp_l1'] = upsample_outputs_as(disps_1[::-1], x1_rev)
@@ -196,5 +198,6 @@ class MonoSceneFlow(nn.Module):
             output_dict['flow_b_pp'] = flow_b_pp
             output_dict['disp_l1_pp'] = disp_l1_pp
             output_dict['disp_l2_pp'] = disp_l2_pp
+            output_dict['x1_pyramid'] = output_dict['x1_pyramid']
 
         return output_dict

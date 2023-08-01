@@ -15,10 +15,11 @@ VALIDATION_BATCH_SIZE = 1
 EPOCHS = 30
 IMG_SIZE = [256, 832]
 IN_CHANNELS_DICT = {
-    'corr': 88,
+    'corr': 8 + 80,
     'no_corr': 8,
+    'pyramid': 8 + 3 + 96,
 }
-SEG_MODEL = 'corr'
+SEG_MODEL = 'pyramid'
 
 torch.manual_seed(0)
 
@@ -71,9 +72,14 @@ def main():
     msf_model.load_state_dict(state_dict)
     print(f'Loaded checkpoint from {checkpoint_path}')
 
-    upsample_model = mups.ModelUpsample()
-    upsample_model.train()
-    upsample_model.cuda()
+    if SEG_MODEL == 'corr':
+        upsample_model = mups.ModelUpsample()
+        upsample_model.train()
+        upsample_model.cuda()
+    elif SEG_MODEL == 'pyramid':
+        upsample_model = mups.ModelUpsample(num_layers=6, reduce_dim=False)
+        upsample_model.train()
+        upsample_model.cuda()
 
     seg_model = mseg.ModelSegmentation(args=Namespace(in_channels=IN_CHANNELS_DICT[SEG_MODEL]))
     seg_model.train()
@@ -142,6 +148,7 @@ def main():
                 # for x in upsampled:
                 #     print(f'Shape upsampled: {x.shape}')
 
+
                 upsampled.append(msf_out["flow_f"][0])
                 upsampled.append(msf_out["flow_b"][0])
                 upsampled.append(msf_out["disp_l1"][0])
@@ -151,6 +158,23 @@ def main():
                     upsampled
                 ), dim=1)
                 # print(f'seg_in.shape: {seg_in.shape}')
+            elif SEG_MODEL == 'pyramid':
+                upsample_in = []
+                pyramid = msf_out["x1_pyramid"]
+                orig_img = pyramid[-1]
+                for x in msf_out["x1_pyramid"][:-1]:
+                    upsample_in.append(x.clone())
+                    del x
+                upsampled = upsample_model(upsample_in)
+                upsampled.append(msf_out["flow_f"][0])
+                upsampled.append(msf_out["flow_b"][0])
+                upsampled.append(msf_out["disp_l1"][0])
+                upsampled.append(msf_out["disp_l2"][0])
+                upsampled.append(orig_img)
+                seg_in = torch.cat((
+                    upsampled
+                ), dim=1)
+
             elif SEG_MODEL == 'no_corr':
                 seg_in = torch.cat((msf_out["flow_f"][0], msf_out["flow_b"]
                                 [0], msf_out["disp_l1"][0], msf_out["disp_l2"][0]), dim=1)
@@ -220,6 +244,7 @@ def main():
         if validation_loss < min_valid_loss:
             min_valid_loss = validation_loss
             print(f'Saving model with validation loss {min_valid_loss}')
+            torch.save(upsample_model.state_dict(), f'{SEG_MODEL}_upsample_model.pt')
             torch.save(seg_model.state_dict(), f'{SEG_MODEL}_seg_model.pt')
         print(f'Epoch: {e} Training Loss: {training_loss / len(train_loader)} Validation Loss: {validation_loss / len(valid_loader)} Time: {end_valid_time - start_time} Train Time: {end_train_time - start_time} Valid Time: {end_valid_time - end_train_time}')
         upsample_model.train()
