@@ -53,3 +53,20 @@ class ModelSegmentation(nn.Module):
     def forward(self, inputs):
         seg_out = self.segmentation_model(inputs)
         return seg_out
+
+
+class ModelConvSegmentation(nn.Module):
+    def __init__(self, in_channels=107, out_channels=3):
+        super(ModelConvSegmentation, self).__init__()
+
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(in_channels, 16, 3, 1, 1),
+            nn.LeakyReLU(0.1, inplace=True),
+        )
+
+        self.conv2 = nn.Conv2d(16, out_channels, 3, 1, 1)
+
+    def forward(self, inputs):
+        out = self.conv1(inputs)
+        out = self.conv2(out)
+        return out

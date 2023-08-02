@@ -30,11 +30,11 @@ class Mods_Base(data.Dataset):
 
         path_dir = os.path.dirname(os.path.realpath(__file__))
         path_index_file = os.path.join(path_dir, index_file)
-        calib_dir = ('../data/calibration')
-        # seg_dir = ('/home/bogosort/diploma/data/mods_wasr')
-        seg_dir = ('/storage/private/student-vicos/mods_wasr')
+        # seg_dir = ('/storage/private/student-vicos/mods_wasr')
+        seg_dir = ('/home/bogosort/diploma/data/mods_wasr')
 
-        calib_dir = ('/storage/private/student-vicos/mods/calibration')
+        # calib_dir = ('/storage/private/student-vicos/mods/calibration')
+        calib_dir = ('../data/calibration')
 
         # log index file
         logging.info(f'Index file: {path_index_file}')
@@ -53,6 +53,8 @@ class Mods_Base(data.Dataset):
 
         filename_list = [line.rstrip().split(' ')
                          for line in index_file.readlines()]
+        # shuffle list
+        np.random.shuffle(filename_list)
 
         logging.info(f'Number of images: {len(filename_list)}')
         self._image_list = []
@@ -63,7 +65,7 @@ class Mods_Base(data.Dataset):
             scene = item[0]
             # take two consecutive frames
             idx_src = item[1]
-            idx_tgt = '%.8d' % (int(idx_src) + 1)
+            idx_tgt = '%.8d' % (int(idx_src) + 10)
             # print(f'idx_src: {idx_src}, idx_tgt: {idx_tgt}')
             # print(os.path.join(images_root, scene, 'frames', idx_src) + 'L' + ext)
             name_l1 = os.path.join(
@@ -144,7 +146,7 @@ class Mods_Base(data.Dataset):
                        for img in self._image_list[index]]
         # logging.info(f'img_list_np[0].shape: {img_list_np[0].shape}')
         if self._ignore_masks[index] is not None:
-            ignore_mask = read_image_as_byte(self._ignore_masks[index])
+            ignore_mask = read_image_as_byte(self._ignore_masks[index])[:, :, :3]
             if self.seg:
                 seg_l1 = img_list_np[4]
             masked = []
@@ -153,9 +155,9 @@ class Mods_Base(data.Dataset):
                 masked.append(img_masked)
 
             img_list_np = masked
-            img_list_np.append(ignore_mask)
             if self.seg:
                 img_list_np.append(seg_l1)
+            img_list_np.append(ignore_mask)
 
 
 
@@ -282,7 +284,7 @@ class Mods_Full(Mods_Base):
             preprocessing_crop=preprocessing_crop,
             crop_size=crop_size,
             num_examples=num_examples,
-            index_file="index_generator/provided/modb_raw_files.txt")
+            index_file="index_generator/provided/mods_files.txt")
 
 
 class Mods_Train(Mods_Base):
@@ -300,7 +302,7 @@ class Mods_Train(Mods_Base):
             preprocessing_crop=preprocessing_crop,
             crop_size=crop_size,
             num_examples=num_examples,
-            index_file="index_generator/generated/modb_raw_train.txt")
+            index_file="index_generator/generated/mods_train.txt")
 
 
 class Mods_Valid(Mods_Base):
@@ -318,7 +320,7 @@ class Mods_Valid(Mods_Base):
             preprocessing_crop=preprocessing_crop,
             crop_size=crop_size,
             num_examples=num_examples,
-            index_file="index_generator/generated/modb_raw_val.txt")
+            index_file="index_generator/generated/mods_val.txt")
 
 
 class Mods_Test(Mods_Base):
@@ -336,4 +338,4 @@ class Mods_Test(Mods_Base):
             preprocessing_crop=preprocessing_crop,
             crop_size=crop_size,
             num_examples=num_examples,
-            index_file="index_generator/generated/modb_raw_test.txt")
+            index_file="index_generator/generated/mods_test.txt")

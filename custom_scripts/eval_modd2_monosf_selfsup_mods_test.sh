@@ -2,7 +2,8 @@
 
 # DATASETS_HOME
 DATASET_HOME="../data/mods/sequences"
-# CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modd2_fulldata_fullres_20_epochs/checkpoint_best.ckpt"
+CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt"
+# CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modd2-mid-checkpoint.ckpt"
 # CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/mid_mods/checkpoint_best.ckpt"
 # CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt"
 
@@ -30,6 +31,7 @@ python ../main.py \
 --validation_loss=$Valid_Loss_Function \
 --validation_key=otl \
 --validation_dataset_num_examples=100 \
+--seed=-1 \
 # --save_flow=True
 # --save_disp=True \
 # --save_disp2=True \

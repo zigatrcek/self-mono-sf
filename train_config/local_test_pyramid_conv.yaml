@@ -1,0 +1,11 @@
+mods_root: '/home/bogosort/diploma/data/mods/sequences'
+msf_model_path: '/home/bogosort/diploma/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt'
+upsample_model_path: '/home/bogosort/diploma/self-mono-sf/checkpoints/seg/pyramid_conv_08-01_20-05/upsample_model.pt'
+seg_model_path: '/home/bogosort/diploma/self-mono-sf/checkpoints/seg/pyramid_conv_08-01_20-05/seg_model.pt'
+img_size: [256, 832]
+validation_batch_size: 1
+seg_model: 'pyramid'
+random_seed: 0
+seg_head: 'conv'
+dir: 'seg_experiments'
+save_predictions: False

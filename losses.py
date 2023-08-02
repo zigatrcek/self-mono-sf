@@ -155,7 +155,7 @@ def _depth2disp_kitti_K(depth, k_value):
 
     return disp
 
-def _disp2depth(disp, calibration_matrix, baseline=-3.5677428730839563e+02):
+def _disp2depth(disp, calibration_matrix, mask=None, baseline=3.5677428730839563e+02):
     """Convert disparity to depth map
 
     Args:
@@ -165,9 +165,14 @@ def _disp2depth(disp, calibration_matrix, baseline=-3.5677428730839563e+02):
     Returns:
         torch.Tensor: Depth map
     """
-    mask = (disp > 0).float()
+    if mask is None:
+        mask = (disp > 0).float()
+    # mask = (disp > 0).float()
     # logging.info(f'calibration_matrix: {calibration_matrix}')
-    depth = (baseline * calibration_matrix.squeeze()[0, 0]) / (disp + (1.0 - mask))
+    # depth = (baseline * calibration_matrix.squeeze()[0, 0]) / (disp + (1.0 - mask))
+    depth = (baseline * calibration_matrix.squeeze()[0, 0]) / (disp + 1e-8)
+    depth = depth * mask
+    logging.info(f'avg: {depth.mean()}, min: {depth.min()}, max: {depth.max()}')
 
     return depth
 
@@ -1528,18 +1533,19 @@ class Eval_MonoDepth(nn.Module):
 
 class Eval_MonoDepth_MODS(nn.Module):
     def __init__(self):
-        window_size = 3
+        window_size = 1
         min_disp = 0
-        num_disp = 80-min_disp
+        num_disp = 160-min_disp
         self.stereo = cv2.StereoSGBM_create(
             minDisparity=min_disp,
             numDisparities=num_disp,
             blockSize=window_size,
             P1=8 * 3 * window_size**2,
             P2=32 * 3 * window_size**2,
-            disp12MaxDiff = 0,
+            disp12MaxDiff = -1,
             preFilterCap=0,
-            uniquenessRatio = 15,
+            uniquenessRatio = 30,
+            # uniquenessRatio = 0,
             speckleWindowSize=0,
             speckleRange=0
         )
@@ -1551,14 +1557,20 @@ class Eval_MonoDepth_MODS(nn.Module):
 
     def forward(self, output_dict, target_dict):
         performance_metrics = {}
+        cmap = plt.cm.get_cmap('plasma')
+        cmap.set_under('black')
 
-        plt.subplot(2, 3, 1)
+
+        plt.subplot(3, 3, 1)
         plt.title('left 1')
         plt.imshow(target_dict['input_l1'][0].permute(1,2,0).cpu().numpy())
-        plt.subplot(2, 3, 2)
+        plt.subplot(3, 3, 2)
+        plt.title('right 1')
+        plt.imshow(target_dict['input_r1'][0].permute(1,2,0).cpu().numpy())
+        plt.subplot(3, 3, 3)
         plt.title('left 2')
         plt.imshow(target_dict['input_l2'][0].permute(1,2,0).cpu().numpy())
-        plt.subplot(2, 3, 3)
+        plt.subplot(3, 3, 4)
         plt.title('sgbm pred')
         seg_l1 = target_dict['seg_l1']
         seg_sky_mask = seg_l1[:, 1, :, :].unsqueeze(0)
@@ -1568,42 +1580,69 @@ class Eval_MonoDepth_MODS(nn.Module):
         ## Depth Eval
         # logging.info(f'output_dict: {output_dict.keys()}')
         # logging.info(f'target_dict: {target_dict.keys()}')
-        l1_pp = target_dict['input_l1']
-        r1_pp = target_dict['input_r1']
+        seg_3_channel_no_sky_mask = seg_no_sky_mask.repeat(1, 3, 1, 1).int().float()
+
+        l1_pp = target_dict['input_l1'] * seg_3_channel_no_sky_mask
+        r1_pp = target_dict['input_r1'] * seg_3_channel_no_sky_mask
         pseudo_gt_disp = _sgbm_disp(l1_pp, r1_pp, self.stereo)
-        pseudo_gt_disp = interpolate2d_as(pseudo_gt_disp, l1_pp, mode="bilinear") * l1_pp.size(3)
+        pseudo_gt_disp = interpolate2d_as(pseudo_gt_disp, l1_pp, mode="bilinear")
+
 
         pseudo_gt_disp_mask = (pseudo_gt_disp > 0)
         full_mask = pseudo_gt_disp_mask.logical_and(seg_no_sky_mask)
         full_mask = full_mask.int().float()
         pseudo_gt_disp = pseudo_gt_disp * full_mask
-        plt.imshow(pseudo_gt_disp[0, 0].cpu().numpy())
+        # pseudo_gt_disp = (pseudo_gt_disp - pseudo_gt_disp.mean()) / pseudo_gt_disp.std()
+        plt.imshow(pseudo_gt_disp[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
 
         intrinsics = target_dict['input_k_l1_flip_aug']
         # plt.imshow(pseudo_gt_disp[0, 0].cpu().numpy())
 
-        plt.subplot(2, 3, 4)
+        plt.subplot(3, 3, 5)
         plt.title('self-mono-sf pred')
 
         out_disp_l_pp = interpolate2d_as(output_dict["disp_l1_pp"][0], pseudo_gt_disp, mode="bilinear") * pseudo_gt_disp.size(3)
         out_disp_l_pp_masked = out_disp_l_pp * full_mask
-        plt.imshow(out_disp_l_pp_masked[0, 0].cpu().numpy())
+        # out_disp_l_pp_masked = (out_disp_l_pp_masked - out_disp_l_pp_masked.mean()) / out_disp_l_pp_masked.std()
+        plt.imshow(out_disp_l_pp_masked[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
 
-        plt.subplot(2, 3, 5)
+        plt.subplot(3, 3, 6)
         plt.title('pred unmasked')
-        plt.imshow(out_disp_l_pp[0, 0].cpu().numpy())
-        plt.show()
+        plt.imshow(out_disp_l_pp[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
 
-        out_depth_l_pp = _disp2depth(out_disp_l_pp, intrinsics)
-        out_depth_l_pp = torch.clamp(out_depth_l_pp, 1e-3, 80)
+
+        full_depth_mask = full_mask.logical_and(out_disp_l_pp_masked > 0).logical_and(pseudo_gt_disp > 0).int().float()
+
+        out_depth_l_pp = _disp2depth(out_disp_l_pp_masked, intrinsics)
+        # out_depth_l_pp = torch.clamp(out_depth_l_pp, 1e-3, 80)
         gt_depth_pp = _disp2depth(pseudo_gt_disp, intrinsics)
+        # gt_depth_pp = torch.clamp(gt_depth_pp, 1e-3, 80)
+        plt.subplot(3, 3, 7)
+        plt.title('SGBM depth')
+        plt.imshow(gt_depth_pp[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
+        plt.subplot(3, 3, 8)
+        plt.title('pred depth')
+        plt.imshow(out_depth_l_pp[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
+        plt.subplot(3, 3, 9)
+        plt.title('pred depth unmasked')
+        out_depth_sky_mask = _disp2depth(out_disp_l_pp * seg_no_sky_mask.float().int(), intrinsics)
+        # out_depth_sky_mask = out_depth_sky_mask / out_depth_sky_mask.max()
+        plt.imshow(out_depth_sky_mask[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
+        plt.show()
 
         output_dict_displ = eval_module_disp_depth(pseudo_gt_disp, pseudo_gt_disp_mask, out_disp_l_pp, gt_depth_pp, out_depth_l_pp)
 
         output_dict["out_disp_l_pp"] = out_disp_l_pp
         output_dict["out_depth_l_pp"] = out_depth_l_pp
+        # logging.info(f'output_dict_displ: {output_dict_displ.keys()}')
         performance_metrics["ab_r"] = output_dict_displ['abs_rel']
         performance_metrics["sq_r"] = output_dict_displ['sq_rel']
+        performance_metrics["rms"] = output_dict_displ['rms']
+        performance_metrics["lrms"] = output_dict_displ['log_rms']
+        performance_metrics["a1"] = output_dict_displ['a1']
+        performance_metrics["a2"] = output_dict_displ['a2']
+        performance_metrics["a3"] = output_dict_displ['a3']
+        print(performance_metrics)
 
         return performance_metrics
 class Eval_SceneFlow_MODS_Test(nn.Module):

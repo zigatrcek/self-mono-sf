@@ -1,0 +1,354 @@
+[2023-01-13 21:01:01] ==> Commandline Arguments
+[2023-01-13 21:01:01]   batch_size: 4
+[2023-01-13 21:01:01]   batch_size_val: 1
+[2023-01-13 21:01:01]   checkpoint: experiments/noteworthy/modd2_fulldata_fullres_1/checkpoint_latest.ckpt
+[2023-01-13 21:01:01]   checkpoint_exclude_params: ['']
+[2023-01-13 21:01:01]   checkpoint_include_params: ['*']
+[2023-01-13 21:01:01]   checkpoint_mode: resume_from_latest
+[2023-01-13 21:01:01]   cuda: True
+[2023-01-13 21:01:01]   evaluation: False
+[2023-01-13 21:01:01]   finetuning: False
+[2023-01-13 21:01:01]   lr_scheduler: MultiStepLR
+[2023-01-13 21:01:01]   lr_scheduler_gamma: 0.5
+[2023-01-13 21:01:01]   lr_scheduler_last_epoch: -1
+[2023-01-13 21:01:01]   lr_scheduler_milestones: [23, 39, 47, 54]
+[2023-01-13 21:01:01]   model: MonoSceneFlow_fullmodel
+[2023-01-13 21:01:01]   num_workers: 16
+[2023-01-13 21:01:01]   optimizer: Adam
+[2023-01-13 21:01:01]   optimizer_amsgrad: False
+[2023-01-13 21:01:01]   optimizer_betas: (0.9, 0.999)
+[2023-01-13 21:01:01]   optimizer_eps: 1e-08
+[2023-01-13 21:01:01]   optimizer_group: None
+[2023-01-13 21:01:01]   optimizer_lr: 0.0002
+[2023-01-13 21:01:01]   optimizer_weight_decay: 0
+[2023-01-13 21:01:01]   save: experiments/MonoSceneFlow_fullmodel-modd2-20230113-210100
+[2023-01-13 21:01:01]   save_disp: False
+[2023-01-13 21:01:01]   save_disp2: False
+[2023-01-13 21:01:01]   save_flow: False
+[2023-01-13 21:01:01]   seed: 1
+[2023-01-13 21:01:01]   start_epoch: 1
+[2023-01-13 21:01:01]   total_epochs: 20
+[2023-01-13 21:01:01]   training_augmentation: Augmentation_SceneFlow
+[2023-01-13 21:01:01]   training_augmentation_photometric: True
+[2023-01-13 21:01:01]   training_augmentation_resize: [256, 832]
+[2023-01-13 21:01:01]   training_augmentation_scale: [0.93, 1.0]
+[2023-01-13 21:01:01]   training_augmentation_trans: 0.07
+[2023-01-13 21:01:01]   training_dataset: MODD2_Train_mnsf
+[2023-01-13 21:01:01]   training_dataset_crop_size: [950, 1224]
+[2023-01-13 21:01:01]   training_dataset_flip_augmentations: True
+[2023-01-13 21:01:01]   training_dataset_num_examples: -1
+[2023-01-13 21:01:01]   training_dataset_preprocessing_crop: True
+[2023-01-13 21:01:01]   training_dataset_root: data/modd2/rectified_video_data
+[2023-01-13 21:01:01]   training_key: total_loss
+[2023-01-13 21:01:01]   training_loss: Loss_SceneFlow_SelfSup
+[2023-01-13 21:01:01]   validation_augmentation: Augmentation_Resize_Only
+[2023-01-13 21:01:01]   validation_augmentation_imgsize: [256, 832]
+[2023-01-13 21:01:01]   validation_augmentation_photometric: False
+[2023-01-13 21:01:01]   validation_dataset: MODD2_Valid_mnsf
+[2023-01-13 21:01:01]   validation_dataset_crop_size: [950, 1224]
+[2023-01-13 21:01:01]   validation_dataset_flip_augmentations: False
+[2023-01-13 21:01:01]   validation_dataset_num_examples: -1
+[2023-01-13 21:01:01]   validation_dataset_preprocessing_crop: False
+[2023-01-13 21:01:01]   validation_dataset_root: data/modd2/rectified_video_data
+[2023-01-13 21:01:01]   validation_key: total_loss
+[2023-01-13 21:01:01]   validation_key_minimize: True
+[2023-01-13 21:01:01]   validation_loss: Loss_SceneFlow_SelfSup
+[2023-01-13 21:01:01] ==> Random Seeds
+[2023-01-13 21:01:01]   Python seed: 1
+[2023-01-13 21:01:01]   Numpy seed: 2
+[2023-01-13 21:01:01]   Torch CPU seed: 3
+[2023-01-13 21:01:01]   Torch CUDA seed: 4
+[2023-01-13 21:01:01] ==> Datasets
+[2023-01-13 21:01:01]   Index file: /home/bogosort/diploma/self-mono-sf/datasets/index_generator/generated/modd2_train.txt
+[2023-01-13 21:01:01]   Images root: data/modd2/rectified_video_data
+[2023-01-13 21:01:01]   Training Dataset: MODD2_Train_mnsf
+[2023-01-13 21:01:01]     datename: kope67-00-00004500-00005050
+[2023-01-13 21:01:01]     input_k_l1: [3, 3]
+[2023-01-13 21:01:01]     input_k_l2: [3, 3]
+[2023-01-13 21:01:01]     input_k_r1: [3, 3]
+[2023-01-13 21:01:01]     input_k_r2: [3, 3]
+[2023-01-13 21:01:01]     input_l1: [3, 950, 1224]
+[2023-01-13 21:01:01]     input_l2: [3, 950, 1224]
+[2023-01-13 21:01:01]     input_r1: [3, 950, 1224]
+[2023-01-13 21:01:01]     input_r2: [3, 950, 1224]
+[2023-01-13 21:01:01]     input_size: [2]
+[2023-01-13 21:01:01]     num_examples: 9988
+[2023-01-13 21:01:01]   Index file: /home/bogosort/diploma/self-mono-sf/datasets/index_generator/generated/modd2_valid.txt
+[2023-01-13 21:01:01]   Images root: data/modd2/rectified_video_data
+[2023-01-13 21:01:01]   Validation Dataset: MODD2_Valid_mnsf
+[2023-01-13 21:01:01]     datename: kope67-00-00004500-00005050
+[2023-01-13 21:01:01]     input_k_l1: [3, 3]
+[2023-01-13 21:01:01]     input_k_l2: [3, 3]
+[2023-01-13 21:01:01]     input_k_r1: [3, 3]
+[2023-01-13 21:01:01]     input_k_r2: [3, 3]
+[2023-01-13 21:01:01]     input_l1: [3, 958, 1278]
+[2023-01-13 21:01:01]     input_l2: [3, 958, 1278]
+[2023-01-13 21:01:01]     input_r1: [3, 958, 1278]
+[2023-01-13 21:01:01]     input_r2: [3, 958, 1278]
+[2023-01-13 21:01:01]     input_size: [2]
+[2023-01-13 21:01:01]     num_examples: 664
+[2023-01-13 21:01:01] ==> Runtime Augmentations
+[2023-01-13 21:01:01]   training_augmentation: Augmentation_SceneFlow
+[2023-01-13 21:01:01]     photometric: True
+[2023-01-13 21:01:01]     resize: [256, 832]
+[2023-01-13 21:01:01]     scale: [0.93, 1.0]
+[2023-01-13 21:01:01]     trans: 0.07
+[2023-01-13 21:01:03]   validation_augmentation: Augmentation_Resize_Only
+[2023-01-13 21:01:03]     imgsize: [256, 832]
+[2023-01-13 21:01:03]     photometric: False
+[2023-01-13 21:01:03] ==> Model and Loss
+[2023-01-13 21:01:03]   Initializing MSRA
+[2023-01-13 21:01:03]   Batch Size: 4
+[2023-01-13 21:01:03]   GPGPU: Cuda
+[2023-01-13 21:01:03]   Network: MonoSceneFlow_fullmodel
+[2023-01-13 21:01:03]   Number of parameters: 5755000
+[2023-01-13 21:01:03]   Training Key: total_loss
+[2023-01-13 21:01:03]   Training Loss: Loss_SceneFlow_SelfSup
+[2023-01-13 21:01:03]   Validation Key: total_loss
+[2023-01-13 21:01:03]   Validation Loss: Loss_SceneFlow_SelfSup
+[2023-01-13 21:01:03] ==> Checkpoint
+[2023-01-13 21:01:03]     Restore keys:
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.1.1.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.1.1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.3.convs.2.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.2.conv_sf.0.weight
+[2023-01-13 21:01:03]       _model.upconv_layers.0.conv1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.4.convs.4.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.2.convs.4.0.weight
+[2023-01-13 21:01:03]       _model.upconv_layers.0.conv1.0.bias
+[2023-01-13 21:01:03]       _model.upconv_layers.2.conv1.0.weight
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.5.1.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.4.convs.1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.1.convs.1.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.3.0.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.0.convs.3.0.bias
+[2023-01-13 21:01:03]       _model.upconv_layers.3.conv1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.1.convs.4.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.4.convs.3.0.bias
+[2023-01-13 21:01:03]       _model.context_networks.convs.1.0.weight
+[2023-01-13 21:01:03]       _model.upconv_layers.3.conv1.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.0.convs.0.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.0.convs.3.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.2.conv_d1.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.3.0.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.4.conv_sf.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.0.1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.2.conv_sf.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.4.convs.0.0.weight
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.5.0.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.3.conv_sf.0.bias
+[2023-01-13 21:01:03]       _model.context_networks.convs.4.0.weight
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.4.0.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.1.convs.2.0.weight
+[2023-01-13 21:01:03]       _model.context_networks.convs.4.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.4.convs.3.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.1.convs.4.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.2.convs.3.0.weight
+[2023-01-13 21:01:03]       _model.context_networks.convs.2.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.5.0.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.1.convs.0.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.3.1.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.1.convs.3.0.weight
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.2.0.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.0.conv_sf.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.1.conv_d1.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.2.convs.4.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.1.conv_sf.0.bias
+[2023-01-13 21:01:03]       _model.context_networks.convs.2.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.2.convs.2.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.1.conv_d1.0.weight
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.0.1.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.4.1.0.bias
+[2023-01-13 21:01:03]       _model.context_networks.conv_d1.0.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.4.1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.4.conv_d1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.2.convs.0.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.3.1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.3.convs.3.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.0.convs.2.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.4.convs.4.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.0.convs.4.0.weight
+[2023-01-13 21:01:03]       _model.context_networks.conv_d1.0.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.3.convs.0.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.0.convs.1.0.weight
+[2023-01-13 21:01:03]       _model.context_networks.convs.5.0.weight
+[2023-01-13 21:01:03]       _model.context_networks.conv_sf.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.1.0.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.1.convs.2.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.2.convs.3.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.3.convs.2.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.4.convs.2.0.weight
+[2023-01-13 21:01:03]       _model.upconv_layers.1.conv1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.1.conv_sf.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.4.conv_d1.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.5.1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.0.convs.0.0.weight
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.0.0.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.1.convs.3.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.4.convs.0.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.4.conv_sf.0.weight
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.0.0.0.bias
+[2023-01-13 21:01:03]       _model.context_networks.convs.1.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.3.convs.4.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.3.convs.3.0.bias
+[2023-01-13 21:01:03]       _model.context_networks.convs.0.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.2.1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.0.conv_sf.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.2.convs.2.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.3.convs.1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.0.conv_d1.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.0.convs.1.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.2.convs.0.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.2.conv_d1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.3.convs.1.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.2.1.0.bias
+[2023-01-13 21:01:03]       _model.upconv_layers.2.conv1.0.bias
+[2023-01-13 21:01:03]       _model.context_networks.convs.0.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.0.convs.2.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.3.conv_d1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.4.convs.2.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.0.convs.4.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.0.conv_d1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.1.convs.0.0.weight
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.4.0.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.3.convs.0.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.3.conv_d1.0.bias
+[2023-01-13 21:01:03]       _model.upconv_layers.1.conv1.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.4.convs.1.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.3.convs.4.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.2.convs.1.0.bias
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.2.0.0.weight
+[2023-01-13 21:01:03]       _model.context_networks.convs.3.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.1.convs.1.0.weight
+[2023-01-13 21:01:03]       _model.flow_estimators.2.convs.1.0.weight
+[2023-01-13 21:01:03]       _model.context_networks.convs.3.0.bias
+[2023-01-13 21:01:03]       _model.context_networks.convs.5.0.bias
+[2023-01-13 21:01:03]       _model.context_networks.conv_sf.0.weight
+[2023-01-13 21:01:03]       _model.feature_pyramid_extractor.convs.1.0.0.bias
+[2023-01-13 21:01:03]       _model.flow_estimators.3.conv_sf.0.weight
+[2023-01-13 21:01:03] ==> Save Directory
+[2023-01-13 21:01:03]   Save directory: experiments/MonoSceneFlow_fullmodel-modd2-20230113-210100
+[2023-01-13 21:01:03] ==> Optimizer
+[2023-01-13 21:01:03]   Adam
+[2023-01-13 21:01:03]   amsgrad: False
+[2023-01-13 21:01:03]   betas: (0.9, 0.999)
+[2023-01-13 21:01:03]   eps: 1e-08
+[2023-01-13 21:01:03]   lr: 0.0002
+[2023-01-13 21:01:03]   weight_decay: 0
+[2023-01-13 21:01:03] ==> Learning Rate Scheduler
+[2023-01-13 21:01:03]   class: MultiStepLR
+[2023-01-13 21:01:03]   gamma: 0.5
+[2023-01-13 21:01:03]   last_epoch: -1
+[2023-01-13 21:01:03]   milestones: [23, 39, 47, 54]
+[2023-01-13 21:01:03] ==> Runtime
+[2023-01-13 21:01:03]   start_epoch: 4
+[2023-01-13 21:01:03]   total_epochs: 20
+[2023-01-13 21:01:03] 
+[2023-01-13 21:01:03] ==> Epoch 4/20
+[2023-01-13 21:01:03]   lr: 0.0002
+[2023-01-13 22:27:37] ==>    Train: 100%|############################|  2497/2497  1:26:34<00:00  0.48it/s  dp_ema=1.0904, s_2_ema=0.9373, s_3_ema=0.0806, s_3s_ema=0.0000, sf_ema=1.8243, total_loss_ema=3.6486
+[2023-01-13 22:33:00] ==> Validate: 100%|########################################################|  664/664  05:23<00:00  2.05it/s  dp=1.1699, s_2=0.9477, s_3=0.0802, s_3s=0.0000, sf=1.8163, total_loss=3.6443
+[2023-01-13 22:33:00] ==> Progress:  15%|###############4                                                                                       |  3/20  1:31:57<8:41:07 1839.25s/ep  best_total_loss_avg=3.6443
+[2023-01-13 22:33:00]   Saved checkpoint as best model..
+[2023-01-13 22:33:00] 
+[2023-01-13 22:33:00] ==> Epoch 5/20
+[2023-01-13 22:33:00]   lr: 0.0002
+[2023-01-14 00:00:00] ==>    Train: 100%|############################|  2497/2497  1:26:59<00:00  0.48it/s  dp_ema=1.0656, s_2_ema=0.9156, s_3_ema=0.0805, s_3s_ema=0.0000, sf_ema=1.7456, total_loss_ema=3.4914
+[2023-01-14 00:05:25] ==> Validate: 100%|########################################################|  664/664  05:25<00:00  2.04it/s  dp=1.1426, s_2=0.9283, s_3=0.0785, s_3s=0.0000, sf=1.7209, total_loss=3.4578
+[2023-01-14 00:05:25] ==> Progress:  20%|####################4                                                                                 |  4/20  3:04:22<12:17:30 2765.68s/ep  best_total_loss_avg=3.4578
+[2023-01-14 00:05:25]   Saved checkpoint as best model..
+[2023-01-14 00:05:26] 
+[2023-01-14 00:05:26] ==> Epoch 6/20
+[2023-01-14 00:05:26]   lr: 0.0002
+[2023-01-14 01:32:01] ==>    Train: 100%|############################|  2497/2497  1:26:35<00:00  0.48it/s  dp_ema=1.0527, s_2_ema=0.9077, s_3_ema=0.0877, s_3s_ema=0.0000, sf_ema=1.7267, total_loss_ema=3.4536
+[2023-01-14 01:37:30] ==> Validate: 100%|########################################################|  664/664  05:29<00:00  2.02it/s  dp=1.1029, s_2=0.9591, s_3=0.1051, s_3s=0.0000, sf=1.7831, total_loss=3.5802
+[2023-01-14 01:37:30] ==> Progress:  25%|#########################5                                                                            |  5/20  4:36:27<13:49:22 3317.48s/ep  best_total_loss_avg=3.4578
+[2023-01-14 01:37:30] 
+[2023-01-14 01:37:30] ==> Epoch 7/20
+[2023-01-14 01:37:30]   lr: 0.0002
+[2023-01-14 03:05:02] ==>    Train: 100%|############################|  2497/2497  1:27:32<00:00  0.48it/s  dp_ema=1.0427, s_2_ema=0.9033, s_3_ema=0.0984, s_3s_ema=0.0000, sf_ema=1.7146, total_loss_ema=3.4291
+[2023-01-14 03:10:26] ==> Validate: 100%|########################################################|  664/664  05:23<00:00  2.05it/s  dp=1.0905, s_2=0.9044, s_3=0.0909, s_3s=0.0000, sf=1.7130, total_loss=3.4438
+[2023-01-14 03:10:26] ==> Progress:  30%|##############################6                                                                       |  6/20  6:09:23<14:21:54 3693.88s/ep  best_total_loss_avg=3.4438
+[2023-01-14 03:10:26]   Saved checkpoint as best model..
+[2023-01-14 03:10:26] 
+[2023-01-14 03:10:26] ==> Epoch 8/20
+[2023-01-14 03:10:26]   lr: 0.0002
+[2023-01-14 04:37:38] ==>    Train: 100%|############################|  2497/2497  1:27:12<00:00  0.48it/s  dp_ema=0.8886, s_2_ema=0.9146, s_3_ema=0.1502, s_3s_ema=0.0001, sf_ema=1.7655, total_loss_ema=3.5310
+[2023-01-14 04:43:04] ==> Validate: 100%|########################################################|  664/664  05:25<00:00  2.04it/s  dp=0.8973, s_2=0.9678, s_3=0.2104, s_3s=0.0001, sf=1.8763, total_loss=3.7617
+[2023-01-14 04:43:04] ==> Progress:  35%|###################################6                                                                  |  7/20  7:42:01<14:18:01 3960.15s/ep  best_total_loss_avg=3.4438
+[2023-01-14 04:43:04] 
+[2023-01-14 04:43:04] ==> Epoch 9/20
+[2023-01-14 04:43:04]   lr: 0.0002
+[2023-01-14 06:10:26] ==>    Train: 100%|############################|  2497/2497  1:27:22<00:00  0.48it/s  dp_ema=0.8007, s_2_ema=0.9119, s_3_ema=0.1744, s_3s_ema=0.0001, sf_ema=1.7617, total_loss_ema=3.5234
+[2023-01-14 06:15:57] ==> Validate: 100%|########################################################|  664/664  05:30<00:00  2.01it/s  dp=0.8904, s_2=0.9198, s_3=0.1611, s_3s=0.0001, sf=1.7532, total_loss=3.5116
+[2023-01-14 06:15:57] ==> Progress:  40%|########################################8                                                             |  8/20  9:14:53<13:52:20 4161.75s/ep  best_total_loss_avg=3.4438
+[2023-01-14 06:15:57] 
+[2023-01-14 06:15:57] ==> Epoch 10/20
+[2023-01-14 06:15:57]   lr: 0.0002
+[2023-01-14 07:43:09] ==>    Train: 100%|############################|  2497/2497  1:27:12<00:00  0.48it/s  dp_ema=0.7845, s_2_ema=0.9040, s_3_ema=0.1660, s_3s_ema=0.0001, sf_ema=1.7403, total_loss_ema=3.4806
+[2023-01-14 07:48:36] ==> Validate: 100%|########################################################|  664/664  05:26<00:00  2.03it/s  dp=0.9145, s_2=0.9373, s_3=0.1873, s_3s=0.0001, sf=1.7860, total_loss=3.5810
+[2023-01-14 07:48:36] ==> Progress:  45%|#############################################4                                                       |  9/20  10:47:32<13:11:26 4316.99s/ep  best_total_loss_avg=3.4438
+[2023-01-14 07:48:36] 
+[2023-01-14 07:48:36] ==> Epoch 11/20
+[2023-01-14 07:48:36]   lr: 0.0002
+[2023-01-14 09:15:34] ==>    Train: 100%|############################|  2497/2497  1:26:58<00:00  0.48it/s  dp_ema=0.7754, s_2_ema=0.8977, s_3_ema=0.1655, s_3s_ema=0.0001, sf_ema=1.7253, total_loss_ema=3.4506
+[2023-01-14 09:21:03] ==> Validate: 100%|########################################################|  664/664  05:28<00:00  2.02it/s  dp=0.8841, s_2=0.9314, s_3=0.1677, s_3s=0.0001, sf=1.7962, total_loss=3.5950
+[2023-01-14 09:21:03] ==> Progress:  50%|##################################################                                                  |  10/20  12:20:00<12:20:00 4440.05s/ep  best_total_loss_avg=3.4438
+[2023-01-14 09:21:03] 
+[2023-01-14 09:21:03] ==> Epoch 12/20
+[2023-01-14 09:21:03]   lr: 0.0002
+[2023-01-14 10:48:06] ==>    Train: 100%|############################|  2497/2497  1:27:02<00:00  0.48it/s  dp_ema=0.7688, s_2_ema=0.8919, s_3_ema=0.1608, s_3s_ema=0.0001, sf_ema=1.7038, total_loss_ema=3.4076
+[2023-01-14 10:53:29] ==> Validate: 100%|########################################################|  664/664  05:23<00:00  2.05it/s  dp=0.8628, s_2=0.9155, s_3=0.1526, s_3s=0.0001, sf=1.7569, total_loss=3.5157
+[2023-01-14 10:53:29] ==> Progress:  55%|#######################################################                                             |  11/20  13:52:26<11:21:05 4540.62s/ep  best_total_loss_avg=3.4438
+[2023-01-14 10:53:30] 
+[2023-01-14 10:53:30] ==> Epoch 13/20
+[2023-01-14 10:53:30]   lr: 0.0002
+[2023-01-14 12:18:44] ==>    Train: 100%|############################|  2497/2497  1:25:14<00:00  0.49it/s  dp_ema=0.7621, s_2_ema=0.8887, s_3_ema=0.1582, s_3s_ema=0.0001, sf_ema=1.6939, total_loss_ema=3.3877
+[2023-01-14 12:24:09] ==> Validate: 100%|########################################################|  664/664  05:24<00:00  2.04it/s  dp=0.8446, s_2=0.9310, s_3=0.1601, s_3s=0.0001, sf=1.7756, total_loss=3.5530
+[2023-01-14 12:24:09] ==> Progress:  60%|############################################################                                        |  12/20  15:23:05<10:15:23 4615.49s/ep  best_total_loss_avg=3.4438
+[2023-01-14 12:24:09] 
+[2023-01-14 12:24:09] ==> Epoch 14/20
+[2023-01-14 12:24:09]   lr: 0.0002
+[2023-01-14 13:49:53] ==>    Train: 100%|############################|  2497/2497  1:25:44<00:00  0.49it/s  dp_ema=0.7516, s_2_ema=0.8830, s_3_ema=0.1550, s_3s_ema=0.0001, sf_ema=1.6806, total_loss_ema=3.3612
+[2023-01-14 13:55:17] ==> Validate: 100%|########################################################|  664/664  05:24<00:00  2.05it/s  dp=0.8603, s_2=0.9163, s_3=0.1582, s_3s=0.0001, sf=1.7590, total_loss=3.5205
+[2023-01-14 13:55:17] ==> Progress:  65%|#################################################################6                                   |  13/20  16:54:14<9:06:07 4681.10s/ep  best_total_loss_avg=3.4438
+[2023-01-14 13:55:17] 
+[2023-01-14 13:55:17] ==> Epoch 15/20
+[2023-01-14 13:55:17]   lr: 0.0002
+[2023-01-14 15:20:32] ==>    Train: 100%|############################|  2497/2497  1:25:15<00:00  0.49it/s  dp_ema=0.7474, s_2_ema=0.8808, s_3_ema=0.1530, s_3s_ema=0.0001, sf_ema=1.6759, total_loss_ema=3.3519
+[2023-01-14 15:25:56] ==> Validate: 100%|########################################################|  664/664  05:23<00:00  2.05it/s  dp=0.8587, s_2=0.9147, s_3=0.1615, s_3s=0.0001, sf=1.7291, total_loss=3.4590
+[2023-01-14 15:25:56] ==> Progress:  70%|######################################################################6                              |  14/20  18:24:53<7:53:31 4735.24s/ep  best_total_loss_avg=3.4438
+[2023-01-14 15:25:56] 
+[2023-01-14 15:25:56] ==> Epoch 16/20
+[2023-01-14 15:25:56]   lr: 0.0002
+[2023-01-14 16:52:12] ==>    Train: 100%|############################|  2497/2497  1:26:16<00:00  0.48it/s  dp_ema=0.7392, s_2_ema=0.8796, s_3_ema=0.1638, s_3s_ema=0.0001, sf_ema=1.6769, total_loss_ema=3.3537
+[2023-01-14 16:57:38] ==> Validate: 100%|########################################################|  664/664  05:25<00:00  2.04it/s  dp=0.8335, s_2=0.9224, s_3=0.1741, s_3s=0.0001, sf=1.7586, total_loss=3.5194
+[2023-01-14 16:57:38] ==> Progress:  75%|###########################################################################7                         |  15/20  19:56:35<6:38:51 4786.37s/ep  best_total_loss_avg=3.4438
+[2023-01-14 16:57:38] 
+[2023-01-14 16:57:38] ==> Epoch 17/20
+[2023-01-14 16:57:38]   lr: 0.0002
+[2023-01-14 18:23:50] ==>    Train: 100%|############################|  2497/2497  1:26:11<00:00  0.48it/s  dp_ema=0.7294, s_2_ema=0.8763, s_3_ema=0.1621, s_3s_ema=0.0001, sf_ema=1.6666, total_loss_ema=3.3332
+[2023-01-14 18:29:16] ==> Validate: 100%|########################################################|  664/664  05:26<00:00  2.04it/s  dp=0.8281, s_2=0.8984, s_3=0.1551, s_3s=0.0001, sf=1.6931, total_loss=3.3890
+[2023-01-14 18:29:16] ==> Progress:  80%|################################################################################8                    |  16/20  21:28:13<5:22:03 4830.85s/ep  best_total_loss_avg=3.3890
+[2023-01-14 18:29:16]   Saved checkpoint as best model..
+[2023-01-14 18:29:16] 
+[2023-01-14 18:29:16] ==> Epoch 18/20
+[2023-01-14 18:29:16]   lr: 0.0002
+[2023-01-14 19:55:41] ==>    Train: 100%|############################|  2497/2497  1:26:24<00:00  0.48it/s  dp_ema=0.7258, s_2_ema=0.8751, s_3_ema=0.1647, s_3s_ema=0.0001, sf_ema=1.6676, total_loss_ema=3.3353
+[2023-01-14 20:01:07] ==> Validate: 100%|########################################################|  664/664  05:26<00:00  2.03it/s  dp=0.8794, s_2=0.8992, s_3=0.1645, s_3s=0.0001, sf=1.7149, total_loss=3.4322
+[2023-01-14 20:01:07] ==> Progress:  85%|#####################################################################################8               |  17/20  23:00:04<4:03:32 4870.86s/ep  best_total_loss_avg=3.3890
+[2023-01-14 20:01:07] 
+[2023-01-14 20:01:07] ==> Epoch 19/20
+[2023-01-14 20:01:07]   lr: 0.0002
+[2023-01-14 21:27:58] ==>    Train: 100%|############################|  2497/2497  1:26:51<00:00  0.48it/s  dp_ema=0.7227, s_2_ema=0.8740, s_3_ema=0.1592, s_3s_ema=0.0001, sf_ema=1.6658, total_loss_ema=3.3316
+[2023-01-14 21:33:24] ==> Validate: 100%|########################################################|  664/664  05:25<00:00  2.04it/s  dp=0.8481, s_2=0.8946, s_3=0.1623, s_3s=0.0001, sf=1.7131, total_loss=3.4296
+[2023-01-14 21:33:24] ==> Progress:  90%|##########################################################################################9          |  18/20  24:32:21<2:43:35 4907.86s/ep  best_total_loss_avg=3.3890
+[2023-01-14 21:33:24] 
+[2023-01-14 21:33:24] ==> Epoch 20/20
+[2023-01-14 21:33:24]   lr: 0.0002
+[2023-01-14 23:01:56] ==>    Train: 100%|############################|  2497/2497  1:28:31<00:00  0.47it/s  dp_ema=0.7211, s_2_ema=0.8774, s_3_ema=0.1617, s_3s_ema=0.0001, sf_ema=1.6753, total_loss_ema=3.3505
+[2023-01-14 23:07:45] ==> Validate: 100%|########################################################|  664/664  05:48<00:00  1.91it/s  dp=0.8345, s_2=0.9136, s_3=0.1741, s_3s=0.0001, sf=1.7440, total_loss=3.4898
+[2023-01-14 23:07:45] ==> Progress:  95%|###############################################################################################9     |  19/20  26:06:41<1:22:27 4947.47s/ep  best_total_loss_avg=3.3890
+[2023-01-14 23:07:45] 
+[2023-01-14 23:07:45] ==> Progress: 100%|#######################################################################################################|  20/20  26:06:42<00:00 4700.10s/ep  best_total_loss_avg=3.3890
+[2023-01-14 23:07:45] Finished.

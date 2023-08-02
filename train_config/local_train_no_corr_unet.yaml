@@ -1,0 +1,10 @@
+mastr_root: '/home/bogosort/diploma/data/mastr1325/MaSTr1325_images_512x384'
+msf_model_path: '/home/bogosort/diploma/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt'
+img_size: [256, 832]
+epochs: 30
+training_batch_size: 2
+validation_batch_size: 1
+seg_model: 'no_corr'
+random_seed: 0
+seg_head: 'unet'
+dir: 'seg_experiments'

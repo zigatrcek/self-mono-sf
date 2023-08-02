@@ -31,7 +31,7 @@ def main():
     gpuargs = {"num_workers": 12, "pin_memory": True}
     full_dataset = MaSTr1325_Full(
         args=Namespace(),
-        root='/storage/private/student-vicos/MaSTr1325/MaSTr1325_images_512x384',
+        root='/home/bogosort/diploma/data/mastr1325/MaSTr1325_images_512x384',
         flip_augmentations=False,
         preprocessing_crop=True,
         crop_size=[384, 512],
@@ -64,7 +64,7 @@ def main():
 
     # load from checkpoint
     # checkpoint_path = '/home/bogosort/diploma/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt'
-    checkpoint_path = '/home/ziga/self-mono-sf/experiments/MonoSceneFlow_fullmodel-mods-20230726-143301/checkpoint_latest.ckpt'
+    checkpoint_path = '/home/bogosort/diploma/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt'
     checkpoint = torch.load(checkpoint_path)
     state_dict = checkpoint['state_dict']
     # remove '_model.' from key names
