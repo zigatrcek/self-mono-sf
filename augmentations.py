@@ -348,7 +348,7 @@ class NoAugmentation(Augmentation_ScaleCrop):
         return example_dict
 
 class Augmentation_SceneFlow(Augmentation_ScaleCrop):
-    def __init__(self, args, photometric=True, trans=0.07, scale=[0.93, 1.0], resize=[256, 832]):
+    def __init__(self, args, photometric=True, trans=0.07, scale=[0.93, 1.0], resize=[384, 640]):
         super(Augmentation_SceneFlow, self).__init__(
             args,
             photometric=photometric,
@@ -612,7 +612,7 @@ class Augmentation_SceneFlow_Finetuning(nn.Module):
 
 
 class Augmentation_Resize_Only(nn.Module):
-    def __init__(self, args, photometric=False, imgsize=[256, 832]):
+    def __init__(self, args, photometric=False, imgsize=[384, 640]):
         super(Augmentation_Resize_Only, self).__init__()
 
         # init

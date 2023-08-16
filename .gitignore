@@ -13,3 +13,5 @@ data/
 *.ninja_log
 *.ninja_deps
 results/
+seg_experiments/
+seg_results/

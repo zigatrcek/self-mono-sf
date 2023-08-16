@@ -1,0 +1,13 @@
+mods_root: '/storage/private/student-vicos/mods_rectified/sequences'
+msf_model_path: '/home/ziga/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt'
+upsample_model_path: '/home/ziga/self-mono-sf/checkpoints/seg/pyramid_unet_08-03_21-22/upsample_model.pt'
+seg_model_path: '/home/ziga/self-mono-sf/checkpoints/seg/pyramid_unet_08-03_21-22/seg_model.pt'
+img_size: [384, 640]
+validation_batch_size: 1
+seg_model: 'pyramid'
+random_seed: 0
+seg_head: 'unet'
+dir: 'seg_experiments'
+save_predictions: False
+method_name: 'pyramid_unet'
+save_dir: '/home/ziga/self-mono-sf/seg_results'

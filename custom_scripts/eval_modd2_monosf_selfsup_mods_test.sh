@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # DATASETS_HOME
-DATASET_HOME="../data/mods/sequences"
-CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt"
+DATASET_HOME="/storage/private/student-vicos/mods_rectified/sequences"
+# CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt"
 # CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modd2-mid-checkpoint.ckpt"
 # CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/mid_mods/checkpoint_best.ckpt"
 # CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt"
+CHECKPOINT="/home/ziga/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt"
 
 # model
 MODEL=MonoSceneFlow_fullmodel
@@ -29,7 +30,7 @@ python ../main.py \
 --validation_dataset=$Valid_Dataset \
 --validation_dataset_root=$DATASET_HOME \
 --validation_loss=$Valid_Loss_Function \
---validation_key=otl \
+--validation_key=w_a1 \
 --validation_dataset_num_examples=100 \
 --seed=-1 \
 # --save_flow=True
