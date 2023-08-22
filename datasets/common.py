@@ -72,6 +72,10 @@ def numpy2torch(array):
 def read_image_as_byte(filename):
     return io.imread(filename)
 
+def get_disp(disp_path):
+    disp = cv2.imread(disp_path, cv2.IMREAD_UNCHANGED)
+    return disp.astype(np.float32) / 32
+
 def read_annotation(filename):
     return sio.loadmat(filename)
 

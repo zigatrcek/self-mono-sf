@@ -6,7 +6,7 @@ import torch.utils.data as data
 import numpy as np
 
 from torchvision import transforms as vision_transforms
-from .common import read_image_as_byte, read_mods_calib_into_dict, read_annotation
+from .common import read_image_as_byte, read_mods_calib_into_dict, read_annotation, get_disp
 from .common import kitti_crop_image_list, kitti_adjust_intrinsic
 import logging
 
@@ -61,6 +61,7 @@ class Mods_Base(data.Dataset):
         logging.info(f'Number of images: {len(filename_list)}')
         self._image_list = []
         self._ignore_masks = []
+        self._gt_list = []
 
         for item in filename_list:
             ext = '.jpg'
@@ -87,7 +88,7 @@ class Mods_Base(data.Dataset):
                 seg_l1 = os.path.join(
                     seg_dir, scene, idx_src) + 'L' + ext
                 disp = os.path.join(
-                    disp_dir, scene, 'frames', idx_tgt) + 'L.jpg'
+                    disp_dir, scene, 'frames', idx_tgt) + 'L.png'
 
 
             if not self.seg and all([
@@ -117,8 +118,8 @@ class Mods_Base(data.Dataset):
                     name_r1,
                     name_r2,
                     seg_l1,
-                    disp
                 ])
+                self._gt_list.append(disp)
             if os.path.isfile(name_ignore_mask):
                 self._ignore_masks.append(name_ignore_mask)
             else:
@@ -151,6 +152,7 @@ class Mods_Base(data.Dataset):
         # im_l1, im_l2
         img_list_np = [read_image_as_byte(img)
                        for img in self._image_list[index]]
+        img_list_np.append(get_disp(self._gt_list[index]))
         # logging.info(f'img_list_np[0].shape: {img_list_np[0].shape}')
         if self._ignore_masks[index] is not None:
             ignore_mask = read_image_as_byte(self._ignore_masks[index])[:, :, :3]

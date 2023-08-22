@@ -193,15 +193,14 @@ def _disp2depth(disp, calibration_matrix, mask=None, baseline=3.5677428730839563
     Returns:
         torch.Tensor: Depth map
     """
-    if mask is None:
-        mask = (disp > 0).float()
+    mask = (disp > 0).float()
     # mask = (disp > 0).float()
     # logging.info(f'calibration_matrix: {calibration_matrix}')
-    # depth = (baseline * calibration_matrix.squeeze()[0, 0]) / (disp + (1.0 - mask))
-    depth = (baseline * calibration_matrix.squeeze()[0, 0]) / (disp + 1e-8)
-    depth = depth * mask
-    logging.info(
-        f'avg: {depth.mean()}, min: {depth.min()}, max: {depth.max()}')
+    depth = (baseline * calibration_matrix.squeeze()[0, 0]) / (disp + (1.0 - mask))
+    # depth = (baseline * calibration_matrix.squeeze()[0, 0]) / (disp + 1e-8)
+    # depth = depth * mask
+    # logging.info(
+    #     f'avg: {depth.mean()}, min: {depth.min()}, max: {depth.max()}')
 
     return depth
 
@@ -1769,13 +1768,13 @@ class Eval_Monodepth_MODD2(nn.Module):
         output_dict["out_disp_l_pp"] = out_disp_l_pp
         output_dict["out_depth_l_pp"] = out_depth_l_pp
         # logging.info(f'output_dict_displ: {output_dict_displ.keys()}')
-        performance_metrics["ab_r"] = output_dict_displ['abs_rel']
-        performance_metrics["sq_r"] = output_dict_displ['sq_rel']
-        performance_metrics["rms"] = output_dict_displ['rms']
-        performance_metrics["lrms"] = output_dict_displ['log_rms']
-        performance_metrics["a1"] = output_dict_displ['a1']
-        performance_metrics["a2"] = output_dict_displ['a2']
-        performance_metrics["a3"] = output_dict_displ['a3']
+        performance_metrics["full_ab_r"] = output_dict_displ['abs_rel']
+        performance_metrics["full_sq_r"] = output_dict_displ['sq_rel']
+        performance_metrics["full_rms"] = output_dict_displ['rms']
+        performance_metrics["full_lrms"] = output_dict_displ['log_rms']
+        performance_metrics["full_a1"] = output_dict_displ['a1']
+        performance_metrics["full_a2"] = output_dict_displ['a2']
+        performance_metrics["full_a3"] = output_dict_displ['a3']
         print(performance_metrics)
 
         return performance_metrics
@@ -1812,8 +1811,6 @@ class Eval_MonoDepth_MODS(nn.Module):
         vis = True
 
         gt_disp = target_dict['disp']
-        plt.imshow(gt_disp[0, 0].cpu().numpy(), cmap='plasma')
-        plt.show()
 
 
         _, _, h, w = target_dict['input_l1'].size()
@@ -1847,19 +1844,20 @@ class Eval_MonoDepth_MODS(nn.Module):
 
         l1_pp = target_dict['input_l1'] * seg_3_channel_no_sky_mask
         r1_pp = target_dict['input_r1'] * seg_3_channel_no_sky_mask
-        pseudo_gt_disp = _sgbm_disp(l1_pp, r1_pp, self.stereo)
+        pseudo_gt_disp = torch.Tensor(gt_disp).cuda()
         pseudo_gt_disp = interpolate2d_as(
             pseudo_gt_disp, l1_pp, mode="bilinear")
+        pseudo_gt_disp = pseudo_gt_disp * pseudo_gt_disp.size(3)
 
-        pseudo_gt_disp_mask = (pseudo_gt_disp > 0)
-        seg_obstacle_mask = pseudo_gt_disp_mask.logical_and(
-            seg_obstacle_mask)
-        seg_water_mask = pseudo_gt_disp_mask.logical_and(
-            seg_water_mask)
+        # pseudo_gt_disp_mask = (pseudo_gt_disp > 0)
+        # seg_obstacle_mask = pseudo_gt_disp_mask.logical_and(
+        #     seg_obstacle_mask)
+        # seg_water_mask = pseudo_gt_disp_mask.logical_and(
+        #     seg_water_mask)
 
         # OBSTACLE
 
-        pseudo_gt_disp_obstacle = pseudo_gt_disp * seg_obstacle_mask.int().float()
+        # pseudo_gt_disp_obstacle = pseudo_gt_disp * seg_obstacle_mask.int().float()
         # logging.info(
         #     f'pseudo_gt_disp min: {pseudo_gt_disp_obstacle[pseudo_gt_disp_obstacle > 0].min()}, max: {pseudo_gt_disp_obstacle[pseudo_gt_disp_obstacle > 0].max()}, mean: {pseudo_gt_disp_obstacle[pseudo_gt_disp_obstacle > 0].mean()}')
         # pseudo_gt_disp_obstacle = (pseudo_gt_disp_obstacle - pseudo_gt_disp_obstacle.mean()) / pseudo_gt_disp_obstacle.std()
@@ -1867,29 +1865,100 @@ class Eval_MonoDepth_MODS(nn.Module):
 
         intrinsics = target_dict['input_k_l1_flip_aug']
         # plt.imshow(pseudo_gt_disp[0, 0].cpu().numpy())
+        t = pseudo_gt_disp.size(3) / output_dict["disp_l1_pp"][0].size(3)
 
 
+        input_l1 = target_dict['input_l1']
         out_disp_l_pp = interpolate2d_as(
-            output_dict["disp_l1_pp"][0], pseudo_gt_disp, mode="bilinear") * pseudo_gt_disp.size(3)
-        out_disp_l_pp_obstacle = out_disp_l_pp * seg_obstacle_mask.int().float()
-        # out_disp_l_pp_obstacle = (out_disp_l_pp_obstacle - out_disp_l_pp_obstacle.mean()) / out_disp_l_pp_obstacle.std()
+            output_dict["disp_l1_pp"][0], input_l1, mode="bilinear") * t * 2 * pseudo_gt_disp.size(3)
 
-        o_abs_rel, o_sq_rel, o_rms, o_log_rms, o_a1, o_a2, o_a3 = compute_errors(pseudo_gt_disp_obstacle[seg_obstacle_mask], out_disp_l_pp_obstacle[seg_obstacle_mask])
+        out_disp_l_final = out_disp_l_pp / (2*t)
 
-        # logging.info(f'out_disp_l_pp_obstacle: abs_rel: {o_abs_rel}, sq_rel: {o_sq_rel}, rms: {o_rms}, log_rms: {o_log_rms}, a1: {o_a1}, a2: {o_a2}, a3: {o_a3}')
+        # logging.info(f'out_disp_l_pp min: {out_disp_l_pp[out_disp_l_pp > 0].min()}, max: {out_disp_l_pp[out_disp_l_pp > 0].max()}, mean: {out_disp_l_pp[out_disp_l_pp > 0].mean()}')
+        # logging.info(f'pseudo_gt_disp min: {pseudo_gt_disp[pseudo_gt_disp > 0].min()}, max: {pseudo_gt_disp[pseudo_gt_disp > 0].max()}, mean: {pseudo_gt_disp[pseudo_gt_disp > 0].mean()}')
 
-        ###############################
-        ### WATER
 
-        pseudo_gt_disp_water = pseudo_gt_disp * seg_water_mask.int().float()
-        # logging.info(
-        #     f'pseudo_gt_disp min: {pseudo_gt_disp_water[pseudo_gt_disp_water > 0].min()}, max: {pseudo_gt_disp_water[pseudo_gt_disp_water > 0].max()}, mean: {pseudo_gt_disp_water[pseudo_gt_disp_water > 0].mean()}')
+        pseudo_gt_disp = pseudo_gt_disp * seg_no_sky_mask.int().float()
+        out_disp_l_pp = out_disp_l_pp * seg_no_sky_mask.int().float()
+        pseudo_gt_disp = (pseudo_gt_disp - pseudo_gt_disp.mean()) / pseudo_gt_disp.std()
+        out_disp_l_pp = (out_disp_l_pp - out_disp_l_pp.mean()) / out_disp_l_pp.std()
 
-        out_disp_l_pp_water = out_disp_l_pp * seg_water_mask.int().float()
+        delta = max(pseudo_gt_disp.min(), out_disp_l_pp.min())
+        pseudo_gt_disp = pseudo_gt_disp - delta
+        out_disp_l_pp = out_disp_l_pp - delta
+        pseudo_gt_disp = torch.clamp(pseudo_gt_disp, 0) * 255
+        out_disp_l_pp = torch.clamp(out_disp_l_pp, 0) * 255
 
-        w_abs_rel, w_sq_rel, w_rms, w_log_rms, w_a1, w_a2, w_a3 = compute_errors(pseudo_gt_disp_water[seg_water_mask], out_disp_l_pp_water[seg_water_mask])
+        # logging.info(f'out_disp_l_pp min: {out_disp_l_pp[out_disp_l_pp > 0].min()}, max: {out_disp_l_pp[out_disp_l_pp > 0].max()}, mean: {out_disp_l_pp[out_disp_l_pp > 0].mean()}')
+        # logging.info(f'pseudo_gt_disp min: {pseudo_gt_disp[pseudo_gt_disp > 0].min()}, max: {pseudo_gt_disp[pseudo_gt_disp > 0].max()}, mean: {pseudo_gt_disp[pseudo_gt_disp > 0].mean()}')
 
-        # logging.info(f'out_disp_l_pp_water: abs_rel: {w_abs_rel}, sq_rel: {w_sq_rel}, rms: {w_rms}, log_rms: {w_log_rms}, a1: {w_a1}, a2: {w_a2}, a3: {w_a3}')
+
+        # pseudo_gt_disp = pseudo_gt_disp * 255
+        # out_disp_l_pp = out_disp_l_pp * 255
+
+        pseudo_gt_depth = _disp2depth_kitti_K(pseudo_gt_disp, intrinsics[:, 0, 0])
+        pseudo_gt_depth = torch.clamp(pseudo_gt_depth, 1e-3, 80)
+
+        gt_depth_mask = (pseudo_gt_depth > 1e-3) * (pseudo_gt_depth < 80)
+        gt_depth_mask = gt_depth_mask.logical_and(seg_no_sky_mask)
+        gt_water_mask = gt_depth_mask.logical_and(seg_water_mask)
+        gt_obstacle_mask = gt_depth_mask.logical_and(seg_obstacle_mask)
+
+        out_depth_l_pp = _disp2depth_kitti_K(out_disp_l_pp, intrinsics[:, 0, 0])
+        out_depth_l_pp = torch.clamp(out_depth_l_pp, 1e-3, 80)
+        # plt.subplot(1,2,1)
+        # plt.imshow(pseudo_gt_depth[0,0].cpu().numpy())
+        # plt.subplot(1,2,2)
+        # plt.imshow(out_depth_l_pp[0,0].cpu().numpy())
+        # plt.show()
+
+
+
+
+        # pseudo_gt_disp = (pseudo_gt_disp - pseudo_gt_disp.min()) / (pseudo_gt_disp.max())
+        # out_disp_l_pp = (out_disp_l_pp - out_disp_l_pp.min()) / (out_disp_l_pp.max())
+        # delta = min(pseudo_gt_disp.min(), out_disp_l_pp.min())
+        # pseudo_gt_disp = pseudo_gt_disp - delta
+        # out_disp_l_pp = out_disp_l_pp - delta
+        # out_disp_l_pp = interpolate2d_as(
+        #     output_dict["disp_l1_pp"][0], pseudo_gt_disp, mode="bilinear") * pseudo_gt_disp.size(3)
+
+        # plt.subplot(1,2,1)
+        # plt.imshow(pseudo_gt_disp[0,0].cpu().numpy(), cmap=cmap)
+        # plt.subplot(1,2,2)
+        # plt.imshow(out_disp_l_pp[0,0].cpu().numpy(), cmap=cmap)
+        # plt.show()
+        abs_rel, sq_rel, rms, log_rms, a1, a2, a3 = compute_errors(pseudo_gt_depth[gt_depth_mask], out_depth_l_pp[gt_depth_mask])
+        w_abs_rel, w_sq_rel, w_rms, w_log_rms, w_a1, w_a2, w_a3 = compute_errors(pseudo_gt_depth[gt_water_mask], out_depth_l_pp[gt_water_mask])
+        o_abs_rel, o_sq_rel, o_rms, o_log_rms, o_a1, o_a2, o_a3 = compute_errors(pseudo_gt_depth[gt_obstacle_mask], out_depth_l_pp[gt_obstacle_mask])
+
+        output_dict["out_disp_l_pp"] = out_disp_l_final
+
+        out_sceneflow = interpolate2d_as(
+            output_dict['flow_f_pp'][0], input_l1, mode="bilinear")
+        out_flow = projectSceneFlow2Flow(
+            target_dict['input_k_l1'], out_sceneflow, out_disp_l_final)
+        output_dict["out_flow_pp"] = out_flow
+
+        # out_disp_l_pp_obstacle = out_disp_l_pp * seg_obstacle_mask.int().float()
+        # # out_disp_l_pp_obstacle = (out_disp_l_pp_obstacle - out_disp_l_pp_obstacle.mean()) / out_disp_l_pp_obstacle.std()
+
+        # o_abs_rel, o_sq_rel, o_rms, o_log_rms, o_a1, o_a2, o_a3 = compute_errors(pseudo_gt_disp_obstacle[seg_obstacle_mask], out_disp_l_pp_obstacle[seg_obstacle_mask])
+
+        # # logging.info(f'out_disp_l_pp_obstacle: abs_rel: {o_abs_rel}, sq_rel: {o_sq_rel}, rms: {o_rms}, log_rms: {o_log_rms}, a1: {o_a1}, a2: {o_a2}, a3: {o_a3}')
+
+        # ###############################
+        # ### WATER
+
+        # pseudo_gt_disp_water = pseudo_gt_disp * seg_water_mask.int().float()
+        # # logging.info(
+        # #     f'pseudo_gt_disp min: {pseudo_gt_disp_water[pseudo_gt_disp_water > 0].min()}, max: {pseudo_gt_disp_water[pseudo_gt_disp_water > 0].max()}, mean: {pseudo_gt_disp_water[pseudo_gt_disp_water > 0].mean()}')
+
+        # out_disp_l_pp_water = out_disp_l_pp * seg_water_mask.int().float()
+
+        # w_abs_rel, w_sq_rel, w_rms, w_log_rms, w_a1, w_a2, w_a3 = compute_errors(pseudo_gt_disp_water[seg_water_mask], out_disp_l_pp_water[seg_water_mask])
+
+        # # logging.info(f'out_disp_l_pp_water: abs_rel: {w_abs_rel}, sq_rel: {w_sq_rel}, rms: {w_rms}, log_rms: {w_log_rms}, a1: {w_a1}, a2: {w_a2}, a3: {w_a3}')
 
 
         ###############################
@@ -1947,10 +2016,18 @@ class Eval_MonoDepth_MODS(nn.Module):
         performance_metrics['w_abs_rel'] = w_abs_rel
         performance_metrics['w_sq_rel'] = w_sq_rel
         performance_metrics['w_rms'] = w_rms
-        performance_metrics['w_log_rms'] = w_log_rms
         performance_metrics['w_a1'] = w_a1
+        performance_metrics['w_log_rms'] = w_log_rms
         performance_metrics['w_a2'] = w_a2
         performance_metrics['w_a3'] = w_a3
+
+        performance_metrics['full_abs_rel'] = abs_rel
+        performance_metrics['full_sq_rel'] = sq_rel
+        performance_metrics['full_rms'] = rms
+        performance_metrics['full_log_rms'] = log_rms
+        performance_metrics['full_a1'] = a1
+        performance_metrics['full_a2'] = a2
+        performance_metrics['full_a3'] = a3
 
         if vis:
             plt.subplot(3, 3, 1)
@@ -1969,38 +2046,40 @@ class Eval_MonoDepth_MODS(nn.Module):
                        [0].permute(1, 2, 0).cpu().numpy())
 
             plt.subplot(3, 3, 4)
-            plt.title('sgbm pred obstacle')
-            vis_pseudo_gt_disp_obstacle = (pseudo_gt_disp_obstacle - \
-                pseudo_gt_disp_obstacle.min()) / pseudo_gt_disp_obstacle.max()
-            vis_pseudo_gt_disp_obstacle = vis_pseudo_gt_disp_obstacle * 255
-            plt.imshow(pseudo_gt_disp_obstacle[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
+            # plt.title('sgbm pred obstacle')
+            # vis_pseudo_gt_disp_obstacle = (pseudo_gt_disp_obstacle - \
+            #     pseudo_gt_disp_obstacle.min()) / pseudo_gt_disp_obstacle.max()
+            # vis_pseudo_gt_disp_obstacle = vis_pseudo_gt_disp_obstacle * 255
+            # plt.imshow(pseudo_gt_disp_obstacle[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
+            plt.imshow(pseudo_gt_disp[0,0].cpu().numpy(), cmap=cmap, vmin=0.01)
 
             plt.subplot(3, 3, 5)
-            plt.title('self-mono-sf pred obstacle')
-            vis_out_disp_l_pp_obstacle = (out_disp_l_pp_obstacle - \
-                out_disp_l_pp_obstacle.min()) / out_disp_l_pp_obstacle.max()
-            vis_out_disp_l_pp_obstacle = vis_out_disp_l_pp_obstacle * 255
-            plt.imshow(out_disp_l_pp_obstacle[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
+            # plt.title('self-mono-sf pred obstacle')
+            # vis_out_disp_l_pp_obstacle = (out_disp_l_pp_obstacle - \
+            #     out_disp_l_pp_obstacle.min()) / out_disp_l_pp_obstacle.max()
+            # vis_out_disp_l_pp_obstacle = vis_out_disp_l_pp_obstacle * 255
+            # plt.imshow(out_disp_l_pp_obstacle[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
+            plt.imshow(out_disp_l_pp[0,0].cpu().numpy(), cmap=cmap, vmin=0.01)
 
             plt.subplot(3, 3, 6)
             plt.title('difference')
-            diff = torch.abs(pseudo_gt_disp_obstacle - out_disp_l_pp_obstacle)
+            diff = torch.abs(pseudo_gt_disp - out_disp_l_pp)
             vis_diff = (diff - diff.min()) / diff.max()
             vis_diff = vis_diff * 255
-            plt.imshow(diff[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
+            plt.imshow(diff[0, 0].cpu().numpy(), cmap=cmap, vmin=0.01)
 
-            plt.subplot(3, 3, 7)
-            plt.title('sgbm pred water')
-            plt.imshow(pseudo_gt_disp_water[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
+            # plt.subplot(3, 3, 7)
+            # plt.title('sgbm pred water')
+            # plt.imshow(pseudo_gt_disp_water[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
 
-            plt.subplot(3, 3, 8)
-            plt.title('self-mono-sf pred water')
-            plt.imshow(out_disp_l_pp_water[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
+            # plt.subplot(3, 3, 8)
+            # plt.title('self-mono-sf pred water')
+            # plt.imshow(out_disp_l_pp_water[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
 
-            plt.subplot(3, 3, 9)
-            plt.title('difference')
-            diff = torch.abs(pseudo_gt_disp_water - out_disp_l_pp_water)
-            plt.imshow(diff[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
+            # plt.subplot(3, 3, 9)
+            # plt.title('difference')
+            # diff = torch.abs(pseudo_gt_disp_water - out_disp_l_pp_water)
+            # plt.imshow(diff[0, 0].cpu().numpy(), cmap=cmap, vmin=1)
             plt.show()
 
         return performance_metrics
