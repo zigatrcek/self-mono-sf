@@ -8,12 +8,13 @@ import open3d as o3d
 import numpy as np
 import torch
 import math
+from matplotlib import pyplot as plt
 
 from utils_misc import flow_to_png_middlebury, read_png_flow, read_png_disp
 from utils_misc import numpy2torch, pixel2pts_ms
 
 width_to_focal = dict()
-width_to_focal[1278] = 956.99355407878932
+width_to_focal[1278] = 9.7210644631744879e+02
 # width_to_focal[1242] = 721.5377
 # width_to_focal[1241] = 718.856
 # width_to_focal[1238] = 718.3351
@@ -31,7 +32,7 @@ cam_center_dict[1278] = [639, 749]
 
 ########
 sampling = [4,20,25,35,40]
-imgflag = 0 # 0 is image, 1 is flow
+imgflag = 1 # 0 is image, 1 is flow
 ########
 
 
@@ -40,11 +41,14 @@ def get_pcd(img_idx, image_dir, result_dir, tt):
 
     idx_curr = '%08d' % (img_idx)
 
-    im1_np0 = (io.imread(os.path.join(image_dir, "image_2/" + idx_curr + "L.jpg")) / np.float32(255.0))[110:, :, :]
+    im1_np0 = (io.imread(os.path.join(image_dir, idx_curr + "L.jpg")) / np.float32(255.0))[300:, :, :]
 
-    flo_f_np0 = read_png_flow(os.path.join(result_dir, "flow/" + idx_curr + "_10.png"))[110:, :, :]
-    disp1_np0 = read_png_disp(os.path.join(result_dir, "disp_0/" + idx_curr + "_10.png"))[110:, :, :]
-    disp2_np0 = read_png_disp(os.path.join(result_dir, "disp_1/" + idx_curr + "_10.png"))[110:, :, :]
+    flo_f_np0 = read_png_flow(os.path.join(result_dir, "flow", 'kope103', idx_curr + "L_10.png"))[300:, :, :]
+    disp1_np0 = read_png_disp(os.path.join(result_dir, "disp_0", 'kope103', idx_curr + "L_10.png"))[300:, :, :]
+    disp2_np0 = read_png_disp(os.path.join(result_dir, "disp_1", 'kope103', idx_curr + "L_10.png"))[300:, :, :]
+    # plt.imshow(disp2_np0)
+    # plt.show()
+    # exit()
 
     im1 = numpy2torch(im1_np0).unsqueeze(0)
     disp1 = numpy2torch(disp1_np0).unsqueeze(0)
@@ -116,99 +120,45 @@ def get_pcd(img_idx, image_dir, result_dir, tt):
     pcd1.points = o3d.utility.Vector3dVector(pts1_np)
     pcd1.colors = o3d.utility.Vector3dVector(pts1_color)
 
-    bbox = o3d.geometry.AxisAlignedBoundingBox(min_crop, max_crop)
-    pcd1 = pcd1.crop(bbox)
+    # pcd1 = pcd1.crop(bbox)
 
     return pcd1
 
+i = 0
 
 def custom_vis(imglist, kitti_data_dir, result_dir, vis_dir):
-
-    custom_vis.index = 0
-    custom_vis.trajectory = o3d.io.read_pinhole_camera_trajectory("results/modd2/cam_pose.json")
-    custom_vis.vis = o3d.visualization.Visualizer()
-
-    img_id = imglist[custom_vis.index]
-    init_pcd = get_pcd(img_id, kitti_data_dir, result_dir, 0)
-    custom_vis.prev_pcd = init_pcd
-
-    def move_forward(vis):
-
-        glb = custom_vis
-
-        ## Capture
-        depth = vis.capture_depth_float_buffer(True)
-        image = vis.capture_screen_float_buffer(True)
-        save_id = imglist[glb.index-1]
-        file_name = ""
-
-        if imgflag == 0:
-            file_name = os.path.join(vis_dir, "{:06d}_{:02d}.png".format(save_id, glb.index))
-        else:
-            file_name = os.path.join(vis_dir, "{:06d}_{:02d}.png".format(save_id, glb.index))
-
-        print(' ' + str(glb.index) + ' '+ str(save_id) + ' '+ file_name)
-        image = np.asarray(image) * 255
-        image = image.astype(np.uint8)
-        print(image.mean(), image.min(), image.max())
-        io.imsave(file_name, image, check_contrast=False)
-
-        ## Rendering
-        max_d_x = 13
-        max_d_y = 4
-
-        if glb.index < sampling[0]:
-            tt = 0
-            rx = 0
-            ry = 0
-        elif glb.index < sampling[1]: # only rotation
-            tt = 0
-            rad = 2 * 3.14159265359 / (sampling[1] - sampling[0]) * (glb.index - sampling[0])
-            rx = max_d_x * math.sin(rad)
-            ry = (max_d_y * math.cos(rad) - max_d_y)
-        elif glb.index < sampling[2]:
-            tt = 0
-            rx = 0
-            ry = 0
-        elif glb.index < sampling[3]:
-            tt = (glb.index - sampling[2]) / (sampling[3] - sampling[2])
-            rx = 0
-            ry = 0
-        else:
-            tt = 1
-            rx = 0
-            ry = 0
-
-        img_id = imglist[glb.index]
-        pcd = get_pcd(img_id, kitti_data_dir, result_dir, tt)
-        glb.index = glb.index + 1
-
-        vis.clear_geometries()
-        vis.add_geometry(pcd)
-        glb.prev_pcd = pcd
-
-        ctr = vis.get_view_control()
-        ctr.scale(-24)
-
-        ctr.rotate(rx, 980.0  + ry, 0, 0)
-        ctr.translate(-5, 0)
-
-        if not glb.index < len(imglist):
-            custom_vis.vis.register_animation_callback(None)
-
-        return False
-
-    vis = custom_vis.vis
+    vis = o3d.visualization.Visualizer()
     vis.create_window()
-    vis.add_geometry(init_pcd)
 
-    ctr = vis.get_view_control()
-    ctr.scale(-24)
-    ctr.rotate(0, 980.0, 0, 0)
-    ctr.translate(-5, 0)
-    vis.register_animation_callback(move_forward)
+    # ctr = vis.get_view_control()
+    # ctr.set_zoom(0.11999999999999984)
+    # ctr.set_front([ -0.027364235563851778, 0.27175389648221898, -0.96197766001021956 ])
+    # ctr.set_lookat([ 0.40990976922313455, -6.0531471549110982, 6.7731456531852841 ])
+    # ctr.set_up([ 0, -0.96236368380624848, -0.27157101181444943 ])
+
+    def next_frame(_):
+        global i
+        vis.clear_geometries()
+        init_pcd = get_pcd(imglist[i], kitti_data_dir, result_dir, 0)
+        vis.add_geometry(init_pcd)
+        ctr = vis.get_view_control()
+        ctr.set_zoom(0.11999999999999984)
+        ctr.set_front([ -0.027364235563851778, 0.27175389648221898, -0.96197766001021956 ])
+        ctr.set_lookat([ 0.40990976922313455, -6.0531471549110982, 6.7731456531852841 ])
+        ctr.set_up([ 0, -0.96236368380624848, -0.27157101181444943 ])
+        img = vis.capture_screen_float_buffer(True)
+        img = np.asarray(img) * 255
+        img = img.astype(np.uint8)
+        io.imsave(os.path.join(vis_dir, f'vis_{i:02d}.png'), img, check_contrast=False)
+        i = i + 1
+
+    vis.register_animation_callback(next_frame)
     vis.run()
+    next_frame()
     vis.destroy_window()
+
+
+
 
 ########################################################################
 
@@ -216,14 +166,16 @@ def custom_vis(imglist, kitti_data_dir, result_dir, vis_dir):
 # result_dir = "demo/demo_generator/results"          ## disp_0, disp_1, flow
 # vis_dir = "demo/demo_generator/vis"                 ## visualization output folder
 
-kitti_data_dir = "results/modd2/modd2_img"    ## raw KITTI image
-result_dir = "results/modd2"          ## disp_0, disp_1, flow
-vis_dir = "results/modd2/vis"                 ## visualization output folder
+kitti_data_dir = "/home/bogosort/diploma/self-mono-sf/demo/demo_generator/mods/kope103-00007600-00008500/frames"    ## raw KITTI image
+result_dir = "/home/bogosort/diploma/self-mono-sf/demo/demo_generator/mods/uncropped_preds"          ## disp_0, disp_1, flow
+vis_dir = "results/mods/vis"                 ## visualization output folder
+if not os.path.exists(vis_dir):
+    os.makedirs(vis_dir)
 
 imglist = []
 
-for ii in range(0, sampling[-1]):
-    imglist.append(561)
+for ii in range(7600, 8600, 10):
+    imglist.append(ii)
 
 
 custom_vis(imglist, kitti_data_dir, result_dir, vis_dir)
