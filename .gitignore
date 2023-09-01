@@ -13,3 +13,4 @@ data/
 *.ninja_log
 *.ninja_deps
 results/
+demo/demo_generator/mods
