@@ -36,10 +36,18 @@ RANDOM_SEED = config['random_seed'] if 'random_seed' in config else False
 SEG_HEAD = config['seg_head']
 DIR = config['dir']
 SAVE_PREDICTIONS = config['save_predictions']
+METHOD_NAME = config['method_name']
+SAVE_DIR = config['save_dir']
 
 timestamp = time.strftime('%m-%d_%H-%M', time.localtime())
 experiment_dir = os.path.join(DIR, f'{SEG_MODEL}_{SEG_HEAD}_{timestamp}')
 os.makedirs(experiment_dir, exist_ok=True)
+logfile_path = os.path.join(experiment_dir, 'logfile.log')
+logging.basicConfig(handlers=[
+    logging.FileHandler('logfile.log'),
+    logging.StreamHandler()
+], level=logging.INFO, format='%(asctime)s %(message)s')
+logging.info(f'Config: {json.dumps(config, indent=4, sort_keys=True)}')
 
 IN_CHANNELS_DICT = {
     'corr': 8 + 80,
@@ -75,7 +83,7 @@ def main():
         shuffle=True,
         drop_last=True,
         **gpuargs)
-    print(f'len(valid_loader): {len(valid_loader)}')
+    logging.info(f'len(valid_loader): {len(valid_loader)}')
 
     msf_model = msf.MonoSceneFlow(
         args=Namespace(evaluation=True, finetuning=False))
@@ -91,7 +99,7 @@ def main():
     state_dict = OrderedDict([(k.replace('_model.', ''), v)
                              for k, v in state_dict.items()])
     msf_model.load_state_dict(state_dict)
-    print(f'Loaded checkpoint from {checkpoint_path}')
+    logging.info(f'Loaded checkpoint from {checkpoint_path}')
 
     upsample_model = None
     if SEG_MODEL == 'corr':
@@ -105,7 +113,7 @@ def main():
         upsample_model.eval()
 
     if SEG_HEAD == 'unet':
-        seg_model = mseg.ModelSegmentation(args=Namespace())
+        seg_model = mseg.ModelSegmentation(in_channels=IN_CHANNELS_DICT[SEG_MODEL])
     elif SEG_HEAD == 'conv':
         seg_model = mseg.ModelConvSegmentation(in_channels=IN_CHANNELS_DICT[SEG_MODEL], out_channels=4)
 
@@ -199,8 +207,10 @@ def main():
                 prediction = prediction.astype(np.uint8)
                 # prediction = np.where(prediction == 0, 0, 255)
                 # print(sample.keys())
-                os.makedirs(os.path.join(experiment_dir, 'predictions', f'{sample["sequence"][0]}'), exist_ok=True)
-                plt.imsave(os.path.join(experiment_dir, 'predictions', f'{sample["sequence"][0]}', f'{sample["img_name"][0]}m.png'), prediction)
+                out_dir = os.path.join(SAVE_DIR, METHOD_NAME, sample["img_fullname"][0].split("/")[-3])
+                os.makedirs(out_dir, exist_ok=True)
+                plt.imsave(f'{out_dir}/{sample["img_name"][0]}.png', prediction)
+                logging.info(f'Saved {sample["img_name"][0]}, {batch_idx+1}/{len(valid_loader)}')
 
 
 

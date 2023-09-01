@@ -9,19 +9,42 @@ import segmentation_models_pytorch as smp
 from collections import OrderedDict
 import time
 from torch.nn import Upsample as upsample
+import yaml
+import sys
+import json
+import logging
 
-TRAINING_BATCH_SIZE = 2
-VALIDATION_BATCH_SIZE = 1
-EPOCHS = 30
-IMG_SIZE = [256, 832]
+
+path_to_config = sys.argv[1]
+
+config = yaml.safe_load(open(path_to_config))
+MASTR_ROOT = config['mastr_root']
+MSF_MODEL_PATH = config['msf_model_path']
+IMG_SIZE = config['img_size']
+EPOCHS = config['epochs']
+TRAINING_BATCH_SIZE = config['training_batch_size']
+VALIDATION_BATCH_SIZE = config['validation_batch_size']
+SEG_MODEL = config['seg_model']
+RANDOM_SEED = config['random_seed'] if 'random_seed' in config else False
+SEG_HEAD = config['seg_head']
+DIR = config['dir']
+
+
+timestamp = time.strftime('%m-%d_%H-%M', time.localtime())
+experiment_dir = os.path.join(DIR, f'{SEG_MODEL}_{SEG_HEAD}_{timestamp}')
+os.makedirs(experiment_dir, exist_ok=False)
+logfile_path = os.path.join(experiment_dir, 'logfile.log')
+logging.basicConfig(filename=logfile_path, level=logging.INFO, format='%(asctime)s %(message)s')
+logging.info(f'Config: {json.dumps(config, indent=4, sort_keys=True)}')
+
 IN_CHANNELS_DICT = {
     'corr': 8 + 80,
     'no_corr': 8,
     'pyramid': 8 + 3 + 96,
 }
-SEG_MODEL = 'pyramid'
 
-torch.manual_seed(0)
+if RANDOM_SEED:
+    torch.manual_seed(RANDOM_SEED)
 
 
 def main():
@@ -31,7 +54,7 @@ def main():
     gpuargs = {"num_workers": 12, "pin_memory": True}
     full_dataset = MaSTr1325_Full(
         args=Namespace(),
-        root='/home/bogosort/diploma/data/mastr1325/MaSTr1325_images_512x384',
+        root=MASTR_ROOT,
         flip_augmentations=False,
         preprocessing_crop=True,
         crop_size=[384, 512],
@@ -63,8 +86,7 @@ def main():
     msf_model.cuda()
 
     # load from checkpoint
-    # checkpoint_path = '/home/bogosort/diploma/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt'
-    checkpoint_path = '/home/bogosort/diploma/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt'
+    checkpoint_path = MSF_MODEL_PATH
     checkpoint = torch.load(checkpoint_path)
     state_dict = checkpoint['state_dict']
     # remove '_model.' from key names
@@ -72,6 +94,7 @@ def main():
     msf_model.load_state_dict(state_dict)
     print(f'Loaded checkpoint from {checkpoint_path}')
 
+    upsample_model = None
     if SEG_MODEL == 'corr':
         upsample_model = mups.ModelUpsample()
         upsample_model.train()
@@ -81,15 +104,19 @@ def main():
         upsample_model.train()
         upsample_model.cuda()
 
-    seg_model = mseg.ModelSegmentation(args=Namespace(in_channels=IN_CHANNELS_DICT[SEG_MODEL]))
+    if SEG_HEAD == 'unet':
+        seg_model = mseg.ModelSegmentation(in_channels=IN_CHANNELS_DICT[SEG_MODEL])
+    elif SEG_HEAD == 'conv':
+        seg_model = mseg.ModelConvSegmentation(in_channels=IN_CHANNELS_DICT[SEG_MODEL], out_channels=4)
     seg_model.train()
     seg_model.cuda()
 
-    parameters = list(upsample_model.parameters()) + list(seg_model.parameters())
+    parameters = list(seg_model.parameters())
+    if upsample_model is not None:
+        parameters = parameters + list(upsample_model.parameters())
 
 
     augmentation = Augmentation_Resize_Only(args=Namespace(), photometric=False, imgsize=IMG_SIZE)
-    # augmentation = NoAugmentation(args=Namespace())
 
     # focal loss
     focal_loss_fn = smp.losses.FocalLoss(mode='multiclass')
@@ -144,10 +171,6 @@ def main():
                     upsample_in.append(x.clone())
                     del x
                 upsampled = upsample_model(upsample_in)
-                # print(f' Len upsampled: {len(upsampled)}')
-                # for x in upsampled:
-                #     print(f'Shape upsampled: {x.shape}')
-
 
                 upsampled.append(msf_out["flow_f"][0])
                 upsampled.append(msf_out["flow_b"][0])
@@ -180,7 +203,7 @@ def main():
                                 [0], msf_out["disp_l1"][0], msf_out["disp_l2"][0]), dim=1)
 
             seg_out = seg_model(seg_in)
-            # print(f'seg_out.shape: {seg_out.shape}')
+
             # optimize
             target = transform_target(sample["ann_l1"])
 
@@ -191,11 +214,14 @@ def main():
             optimizer.step()
             training_loss += loss.item()
             batch_end_time = time.time()
-            # print(f'Epoch: {e} Batch: {batch_idx} Loss: {loss.item()} Time: {batch_end_time - batch_start_time}')
+            logging.debug(f'Epoch: {e} Batch: {batch_idx} Loss: {loss.item()} Time: {batch_end_time - batch_start_time}')
         end_train_time = time.time()
-        upsample_model.eval()
+
+        if upsample_model is not None:
+            upsample_model.eval()
         seg_model.eval()
         validation_loss = 0.0
+
         for batch_idx, sample in enumerate(valid_loader):
             input_keys = list(filter(lambda x: "input" in x, sample.keys()))
             target_keys = list(filter(lambda x: "target" in x, sample.keys()))
@@ -217,9 +243,6 @@ def main():
                     upsample_in.append(x.clone())
                     del x
                 upsampled = upsample_model(upsample_in)
-                # print(f' Len upsampled: {len(upsampled)}')
-                # for x in upsampled:
-                #     print(f'Shape upsampled: {x.shape}')
 
                 upsampled.append(msf_out["flow_f"][0])
                 upsampled.append(msf_out["flow_b"][0])
@@ -230,9 +253,27 @@ def main():
                     upsampled
                 ), dim=1)
                 # print(f'seg_in.shape: {seg_in.shape}')
+            elif SEG_MODEL == 'pyramid':
+                upsample_in = []
+                pyramid = msf_out["x1_pyramid"]
+                orig_img = pyramid[-1]
+                for x in msf_out["x1_pyramid"][:-1]:
+                    upsample_in.append(x.clone())
+                    del x
+                upsampled = upsample_model(upsample_in)
+                upsampled.append(msf_out["flow_f"][0])
+                upsampled.append(msf_out["flow_b"][0])
+                upsampled.append(msf_out["disp_l1"][0])
+                upsampled.append(msf_out["disp_l2"][0])
+                upsampled.append(orig_img)
+                seg_in = torch.cat((
+                    upsampled
+                ), dim=1)
+
             elif SEG_MODEL == 'no_corr':
                 seg_in = torch.cat((msf_out["flow_f"][0], msf_out["flow_b"]
                                 [0], msf_out["disp_l1"][0], msf_out["disp_l2"][0]), dim=1)
+
             seg_out = seg_model(seg_in)
 
             target = transform_target(sample["ann_l1"])
@@ -243,11 +284,13 @@ def main():
         end_valid_time = time.time()
         if validation_loss < min_valid_loss:
             min_valid_loss = validation_loss
-            print(f'Saving model with validation loss {min_valid_loss}')
-            torch.save(upsample_model.state_dict(), f'{SEG_MODEL}_upsample_model.pt')
-            torch.save(seg_model.state_dict(), f'{SEG_MODEL}_seg_model.pt')
-        print(f'Epoch: {e} Training Loss: {training_loss / len(train_loader)} Validation Loss: {validation_loss / len(valid_loader)} Time: {end_valid_time - start_time} Train Time: {end_train_time - start_time} Valid Time: {end_valid_time - end_train_time}')
-        upsample_model.train()
+            logging.info(f'Saving model with validation loss {min_valid_loss / len(valid_loader)}')
+            if upsample_model is not None:
+                torch.save(upsample_model.state_dict(), os.path.join(experiment_dir, 'upsample_model.pt'))
+            torch.save(seg_model.state_dict(), os.path.join(experiment_dir, 'seg_model.pt'))
+        logging.info(f'Epoch: {e} Training Loss: {training_loss / len(train_loader)} Validation Loss: {validation_loss / len(valid_loader)} Time: {end_valid_time - start_time} Train Time: {end_train_time - start_time} Valid Time: {end_valid_time - end_train_time}')
+        if upsample_model is not None:
+            upsample_model.train()
         seg_model.train()
 
 

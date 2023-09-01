@@ -14,3 +14,5 @@ data/
 *.ninja_deps
 results/
 demo/demo_generator/mods
+seg_experiments/
+seg_results/

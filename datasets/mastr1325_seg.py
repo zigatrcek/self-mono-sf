@@ -120,8 +120,8 @@ class MaSTr1325_Base(data.Dataset):
         ## loading calibration matrix
         self.intrinsic_dict_l = {}
         self.intrinsic_dict_r = {}
-        # self.intrinsic_dict_l, self.intrinsic_dict_r, _ = read_mods_calib_into_dict('/storage/private/student-vicos/mods/calibration')
-        self.intrinsic_dict_l, self.intrinsic_dict_r, _ = read_mods_calib_into_dict('/home/bogosort/diploma/data/calibration')
+        self.intrinsic_dict_l, self.intrinsic_dict_r, _ = read_mods_calib_into_dict('/storage/private/student-vicos/mods/calibration')
+        # self.intrinsic_dict_l, self.intrinsic_dict_r, _ = read_mods_calib_into_dict('/home/bogosort/diploma/data/calibration')
 
         self._to_tensor = vision_transforms.Compose([
             vision_transforms.ToPILImage(),

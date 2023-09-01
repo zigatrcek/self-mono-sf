@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # DATASETS_HOME
-DATASET_HOME="../data/mods/sequences"
-CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt"
+DATASET_HOME="/storage/private/student-vicos/mods_rectified/sequences"
+# CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt"
 # CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modd2-mid-checkpoint.ckpt"
 # CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/mid_mods/checkpoint_best.ckpt"
 # CHECKPOINT="/home/bogosort/diploma/self-mono-sf/checkpoints/modb_raw/checkpoint_latest.ckpt"
+CHECKPOINT="/home/ziga/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt"
 
 # model
 MODEL=MonoSceneFlow_fullmodel
@@ -15,7 +16,7 @@ Valid_Augmentation=Augmentation_Resize_Only
 Valid_Loss_Function=Eval_MonoDepth_MODS
 
 # training configuration
-SAVE_PATH="eval/monosf_modd2_selfsup_modd2_test"
+SAVE_PATH="eval/monosf_modd2_selfsup_mods_test/full"
 python ../main.py \
 --batch_size=1 \
 --batch_size_val=1 \
@@ -29,9 +30,9 @@ python ../main.py \
 --validation_dataset=$Valid_Dataset \
 --validation_dataset_root=$DATASET_HOME \
 --validation_loss=$Valid_Loss_Function \
---validation_key=otl \
---validation_dataset_num_examples=100 \
+--validation_key=full_a1 \
+--validation_dataset_num_examples=10 \
 --seed=-1 \
-# --save_flow=True
+# --save_flow=True \
 # --save_disp=True \
 # --save_disp2=True \

@@ -72,6 +72,10 @@ def numpy2torch(array):
 def read_image_as_byte(filename):
     return io.imread(filename)
 
+def get_disp(disp_path):
+    disp = cv2.imread(disp_path, cv2.IMREAD_UNCHANGED)
+    return disp.astype(np.float32) / 32
+
 def read_annotation(filename):
     return sio.loadmat(filename)
 
@@ -227,6 +231,7 @@ def read_modd2_calib_into_dict(path_dir: str) -> 'tuple[dict, dict]':
             of left and right cameras.
     """
     modd2_dir = os.path.abspath(os.path.join(path_dir, '../..', 'data/modd2/rectified_video_data'))
+    modd2_dir = '/storage/private/student-vicos/modd2/video_data'
     intrinsic_dict_l = {}
     intrinsic_dict_r = {}
     for p in Path(modd2_dir).iterdir():

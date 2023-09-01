@@ -1,22 +1,21 @@
 #!/bin/bash
 
 # DATASETS_HOME
-# MODD2_HOME="data/modd2/rectified_video_data"
-MODD2_HOME="../data/LaRS_v0.9.3"
-CHECKPOINT="experiments/noteworthy/modd2_fulldata_fullres_20_epochs/checkpoint_latest.ckpt"
+MODD2_HOME="/storage/private/student-vicos/modd2/video_data"
+CHECKPOINT="/home/ziga/self-mono-sf/checkpoints/modd2/checkpoint_best.ckpt"
 
 # model
 MODEL=MonoSceneFlow_fullmodel
 
-# Valid_Dataset=MODD2_Visualisation_mnsf
-Valid_Dataset=MODD2_Inference_mnsf
+# Valid_Dataset=MODD2_Inference_mnsf
+Valid_Dataset=MODD2_Visualisation_mnsf
 Valid_Augmentation=Augmentation_Resize_Only
-Valid_Loss_Function=Eval_SceneFlow_KITTI_Test
+Valid_Loss_Function=Eval_Monodepth_MODD2
 
 # training configuration
-SAVE_PATH="eval/inference/lars_0.9.3_mnsf_modd2_attempt_2"
+SAVE_PATH="eval/inference/modd2_sgbm_test"
 python ../main.py \
---batch_size=4 \
+--batch_size=1 \
 --batch_size_val=1 \
 --checkpoint=$CHECKPOINT \
 --model=$MODEL \
@@ -28,9 +27,9 @@ python ../main.py \
 --validation_dataset=$Valid_Dataset \
 --validation_dataset_root=$MODD2_HOME \
 --validation_loss=$Valid_Loss_Function \
---validation_key=sf \
+--validation_key=otl \
 --validation_dataset_num_examples=-1 \
---save_disp=True \
+--save_disp=False \
 --save_disp2=False \
---save_flow=True \
+--save_flow=False \
 --save_depth=False
